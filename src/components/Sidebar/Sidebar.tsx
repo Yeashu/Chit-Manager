@@ -1,5 +1,9 @@
+'use client'
+
 import Link from 'next/link';
-import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings } from '@tabler/icons-react';
+import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings, IconLogout } from '@tabler/icons-react';
+import { useUser } from '@/hooks/useUser';
+import { logout } from '@/app/auth/actions';
 
 interface SidebarProps {
   activeItem?: 'dashboard' | 'groups' | 'payments' | 'reports' | 'settings' | 'members' | 'auctions';
@@ -7,6 +11,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarProps) => {
+  const { user, loading } = useUser();
   const menuItems = [
     { 
       id: 'dashboard', 
@@ -62,6 +67,29 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
           ))}
         </ul>
       </nav>
+      
+      {/* User Info and Logout */}
+      {!loading && user && (
+        <div className="border-t border-[#2a3a2a] pt-4 mt-4">
+          <div className="mb-3 px-2">
+            <div className="text-sm font-medium text-white truncate">
+              {user.user_metadata?.full_name || user.email}
+            </div>
+            <div className="text-xs text-gray-400 truncate">
+              {user.email}
+            </div>
+          </div>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 p-2 rounded-md text-gray-300 hover:bg-[#2a3a2a] hover:text-white transition-colors"
+            >
+              <IconLogout size={20} stroke={1.5} />
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
