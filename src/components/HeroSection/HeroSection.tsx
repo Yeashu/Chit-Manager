@@ -49,8 +49,17 @@ const HeroSection = () => (
         >
           <div className="relative z-10 bg-[#232b1c] rounded-2xl p-1 shadow-2xl">
             <div className="relative aspect-video rounded-xl overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center text-[#a3e635]/50">
-                <span className="text-lg">Finance Dashboard Preview</span>
+              <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/finance-dashboard-preview.png" 
+                  alt="Finance Dashboard Preview" 
+                  className="w-full h-full object-cover opacity-90"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1554224155-3a58922a22c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
+                  }}
+                />
               </div>
             </div>
             {/* Floating elements */}

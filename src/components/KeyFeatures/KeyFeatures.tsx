@@ -31,7 +31,7 @@ const features = [
 ];
 
 const KeyFeatures = () => (
-  <section className="relative py-16 md:py-24 overflow-hidden">
+  <section id="features" className="py-16 md:py-24 bg-[#181f16] relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-b from-[#181f16] to-[#1a2318] -z-10"></div>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       <motion.div 
