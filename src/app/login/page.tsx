@@ -2,8 +2,12 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { login } from '@/app/auth/actions';
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get('message');
   return (
     <div className="min-h-screen bg-[#181f16] flex items-center justify-center p-4">
       <motion.div 
@@ -24,9 +28,14 @@ export default function LoginPage() {
             </Link>
             <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
             <p className="text-[#cbd5c0] text-sm">Sign in to your account to continue</p>
+            {message && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-400 text-sm">{message}</p>
+              </div>
+            )}
           </div>
 
-          <form className="space-y-6">
+          <form action={login} className="space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}

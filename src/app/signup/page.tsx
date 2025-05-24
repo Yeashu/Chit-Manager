@@ -2,8 +2,12 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { signup } from '@/app/auth/actions';
+import { useSearchParams } from 'next/navigation';
 
 export default function SignupPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get('message');
   return (
     <div className="min-h-screen bg-[#181f16] flex items-center justify-center p-4">
       <motion.div 
@@ -24,9 +28,14 @@ export default function SignupPage() {
             </Link>
             <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
             <p className="text-[#cbd5c0] text-sm">Join thousands of users managing their chit funds with ease</p>
+            {message && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-400 text-sm">{message}</p>
+              </div>
+            )}
           </div>
 
-          <form className="space-y-6">
+          <form action={signup} className="space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -37,7 +46,7 @@ export default function SignupPage() {
               </label>
               <input
                 id="name"
-                name="name"
+                name="full_name"
                 type="text"
                 required
                 className="w-full px-4 py-3 bg-[#1a2318] border border-[#2a3424] rounded-lg text-white placeholder-[#4a5a46] focus:outline-none focus:ring-2 focus:ring-[#a3e635]/50 focus:border-transparent transition"
