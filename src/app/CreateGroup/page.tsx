@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
+import { createGroup } from '@/lib/actions/groupActions';
+import { useRouter } from 'next/navigation';
 
 export default function CreateGroup() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [groupName, setGroupName] = useState('');
   const [description, setDescription] = useState('');
@@ -13,6 +16,35 @@ export default function CreateGroup() {
   const [useCustomDuration, setUseCustomDuration] = useState(false);
   const [monthlyContribution, setMonthlyContribution] = useState('');
   const [totalMembers, setTotalMembers] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('name', groupName);
+      formData.append('description', description);
+      formData.append('monthly_contribution', monthlyContribution);
+      formData.append('total_members', totalMembers);
+      formData.append('duration_months', useCustomDuration ? customDuration : duration);
+
+      const result = await createGroup(formData);
+      
+      if (result.error) {
+        setError(result.error);
+      } else {
+        // Success - redirect to group details
+        router.push(`/GroupDetail/${result.data?.id}`);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleNext = () => {
     // In a real app, you would validate the fields before proceeding
@@ -29,6 +61,12 @@ export default function CreateGroup() {
       
       <div className="flex-1 p-8">
         <h1 className="text-2xl font-bold mb-4">Create New Group</h1>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
         
         <div className="mb-8">
           <div className="text-sm text-gray-400 mb-2">Step {currentStep} of 3</div>
@@ -198,8 +236,11 @@ export default function CreateGroup() {
               >
                 Previous
               </Button>
-              <Button onClick={() => alert('Group created successfully!')}>
-                Create Group
+              <Button 
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Creating...' : 'Create Group'}
               </Button>
             </div>
           </div>
