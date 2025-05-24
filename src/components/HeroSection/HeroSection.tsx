@@ -42,41 +42,74 @@ const HeroSection = () => (
           </div>
         </motion.div>
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.8, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative"
+          transition={{ duration: 1, delay: 0.2, type: "spring", stiffness: 100 }}
+          whileHover={{ 
+            scale: 1.05, 
+            y: -10,
+            transition: { duration: 0.3 }
+          }}
+          className="relative transform-gpu"
         >
-          <div className="relative z-10 bg-[#232b1c] rounded-2xl p-1 shadow-2xl">
-            <div className="relative aspect-video rounded-xl overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center text-[#a3e635]/50">
-                <span className="text-lg">Finance Dashboard Preview</span>
+          {/* Enhanced glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#a3e635]/30 to-[#81c784]/30 rounded-3xl filter blur-xl scale-110 animate-pulse"></div>
+          
+          <div className="relative z-10 bg-gradient-to-br from-[#232b1c] to-[#1a2318] rounded-3xl p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_80px_rgba(163,230,53,0.15)]">
+            <div className="relative aspect-video rounded-2xl overflow-hidden scale-110 origin-center">
+              <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/finance-dashboard-preview.png" 
+                  alt="Finance Dashboard Preview" 
+                  className="w-full h-full object-cover opacity-95 hover:opacity-100 transition-opacity duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1554224155-3a58922a22c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
+                  }}
+                />
               </div>
             </div>
-            {/* Floating elements */}
+            
+            {/* Enhanced floating elements with bigger scale */}
             <motion.div 
-              animate={{ y: [0, -10, 0] }} 
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -top-4 -right-4 bg-[#a3e635] p-3 rounded-xl shadow-lg"
+              animate={{ y: [0, -15, 0] }} 
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              whileHover={{ scale: 1.1 }}
+              className="absolute -top-6 -right-6 bg-gradient-to-r from-[#a3e635] to-[#94d82d] p-4 rounded-2xl shadow-[0_15px_35px_rgba(163,230,53,0.4)] scale-110"
             >
-              <div className="text-[#181f16] font-bold text-sm">
-                <div className="text-xs opacity-70">Total Value</div>
-                <div>$12,450</div>
+              <div className="text-[#181f16] font-bold">
+                <div className="text-xs opacity-80">Total Value</div>
+                <div className="text-lg">$12,450</div>
               </div>
             </motion.div>
+            
             <motion.div 
-              animate={{ y: [0, 10, 0] }} 
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-              className="absolute -bottom-4 -left-4 bg-white p-3 rounded-xl shadow-lg"
+              animate={{ y: [0, 12, 0] }} 
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.7 }}
+              whileHover={{ scale: 1.1 }}
+              className="absolute -bottom-6 -left-6 bg-gradient-to-r from-white to-gray-100 p-4 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.3)] scale-110"
             >
-              <div className="text-[#181f16] font-bold text-sm">
+              <div className="text-[#181f16] font-bold">
                 <div className="text-xs opacity-70">Active Plans</div>
-                <div>3</div>
+                <div className="text-lg">3</div>
               </div>
             </motion.div>
-            {/* Decorative elements */}
-            <div className="absolute -z-10 w-32 h-32 bg-[#a3e635]/20 rounded-full -top-10 -left-10"></div>
-            <div className="absolute -z-10 w-20 h-20 bg-[#81c784]/20 rounded-full -bottom-5 -right-5"></div>
+            
+            {/* Enhanced decorative elements */}
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              className="absolute -z-10 w-40 h-40 bg-gradient-to-r from-[#a3e635]/30 to-[#81c784]/30 rounded-full -top-16 -left-16 filter blur-2xl"
+            ></motion.div>
+            <motion.div 
+              animate={{ rotate: -360 }}
+              transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+              className="absolute -z-10 w-32 h-32 bg-gradient-to-l from-[#81c784]/25 to-[#a3e635]/25 rounded-full -bottom-10 -right-10 filter blur-xl"
+            ></motion.div>
+            
+            {/* Additional glow rings */}
+            <div className="absolute -z-20 inset-0 rounded-3xl bg-gradient-to-r from-[#a3e635]/20 to-[#81c784]/20 scale-125 filter blur-3xl"></div>
           </div>
         </motion.div>
       </div>
