@@ -13,6 +13,7 @@ export default function CreateGroup() {
   const [useCustomDuration, setUseCustomDuration] = useState(false);
   const [monthlyContribution, setMonthlyContribution] = useState('');
   const [totalMembers, setTotalMembers] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleNext = () => {
     // In a real app, you would validate the fields before proceeding
@@ -21,6 +22,36 @@ export default function CreateGroup() {
 
   const handlePrevious = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  const handleCreateGroup = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      // Calculate the total amount (first month's contribution * total members)
+      const totalAmount = Number(monthlyContribution) * Number(totalMembers);
+
+      await initiatePayment({
+        amount: totalAmount,
+        description: `Group Creation: ${groupName}`,
+        onSuccess: (response) => {
+          alert(`Payment successful! Group created successfully. Payment ID: ${response.razorpay_payment_id}`);
+          window.location.href = '/dashboard';
+        },
+        onError: (error) => {
+          alert(`Payment failed: ${error?.description || 'Unknown error'}`);
+          setLoading(false);
+        },
+        onClose: () => {
+          setLoading(false);
+        }
+      });
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Failed to process payment. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -184,11 +215,32 @@ export default function CreateGroup() {
         
         {currentStep === 3 && (
           <div className="max-w-2xl">
-            {/* Step 3 content would go here - Payment settings */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Payment Settings</h2>
-              {/* Payment settings UI would go here */}
-              <p className="text-gray-400">This is step 3 of the group creation process.</p>
+              <div className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium mb-2">Payment Summary</h3>
+                  <div className="space-y-2 text-[#cbd5c0]">
+                    <div className="flex justify-between">
+                      <span>Monthly Contribution:</span>
+                      <span>${monthlyContribution}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Members:</span>
+                      <span>{totalMembers}</span>
+                    </div>
+                    <div className="border-t border-[#2a3424] my-2 pt-2">
+                      <div className="flex justify-between font-medium">
+                        <span>Total Amount:</span>
+                        <span>${Number(monthlyContribution) * Number(totalMembers)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-[#cbd5c0]">
+                  This amount will be collected from all members to start the group. Each member will contribute ${monthlyContribution} per month.
+                </p>
+              </div>
             </div>
             
             <div className="flex justify-between">
@@ -198,8 +250,11 @@ export default function CreateGroup() {
               >
                 Previous
               </Button>
-              <Button onClick={() => alert('Group created successfully!')}>
-                Create Group
+              <Button 
+                onClick={handleCreateGroup}
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : 'Create Group'}
               </Button>
             </div>
           </div>
