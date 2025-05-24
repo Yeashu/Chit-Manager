@@ -145,7 +145,7 @@ export default function CreateGroup() {
             <div className="flex justify-between">
               <Button 
                 variant="outline" 
-                onClick={() => window.history.back()}
+                onClick={() => router.back()}
               >
                 Previous
               </Button>
