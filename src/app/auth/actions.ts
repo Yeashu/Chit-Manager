@@ -70,7 +70,7 @@ export async function signup(formData: FormData) {
       .from('user_profile')
       .insert({
         user_id: authData.user.id,
-        name: fullName,
+        name: name,
         email: email,
         created_at: new Date().toISOString()
       })

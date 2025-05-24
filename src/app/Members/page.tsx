@@ -116,8 +116,8 @@ export default function Members() {
           {filteredMembers.map((member) => (
             <MemberCard
               key={member.id}
-              name={member.name}
-              avatarUrl={member.avatarUrl}
+              name={member.user.name || member.user.email}
+              email={member.user.email}
               trustScore={member.trustScore}
               paymentStatus={member.paymentStatus}
             />
