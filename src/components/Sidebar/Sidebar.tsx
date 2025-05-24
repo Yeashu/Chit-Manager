@@ -12,7 +12,7 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
       id: 'dashboard', 
       label: 'Dashboard', 
       icon: <IconHome size={20} stroke={1.5} />, 
-      href: '/' 
+      href: '/dashboard' 
     },
     { 
       id: 'groups', 
