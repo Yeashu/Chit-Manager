@@ -1,0 +1,35 @@
+Library Integration Directory
+==========================
+
+Purpose:
+-------
+Configure and abstract third-party libraries and services.
+
+Best Practices:
+-------------
+1. Organization:
+   - Group related services
+   - Use clear naming conventions
+   - Implement proper error handling
+   - Document configuration options
+
+2. Code Quality:
+   - Abstract complex configurations
+   - Use TypeScript for type safety
+   - Implement proper retry mechanisms
+   - Use environment variables
+   - Add proper logging
+
+3. Security:
+   - Never expose credentials
+   - Implement rate limiting
+   - Use proper authentication
+   - Handle errors securely
+
+Common Contents:
+--------------
+- Database configurations
+- API clients
+- Authentication services
+- External service integrations
+- Caching implementations

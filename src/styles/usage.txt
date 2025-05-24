@@ -1,0 +1,103 @@
+Global Styles Directory
+=====================
+
+Purpose:
+-------
+Store global styles, theme configurations, and shared styling utilities.
+
+Directory Structure:
+-----------------
+styles/
+  ├── globals.css        # Global styles and CSS reset
+  ├── variables.css      # CSS custom properties
+  ├── themes/            # Theme-specific styles
+  ├── animations/        # Reusable animations
+  └── mixins/           # SCSS/CSS mixins
+
+Best Practices:
+-------------
+1. Global Styles:
+   - Keep global styles minimal
+   - Use CSS reset or normalize
+   - Define base typography
+   - Set up root variables
+   - Document global class utilities
+
+2. Theme Management:
+   - Use CSS custom properties
+   - Define color schemes
+   - Set up dark/light modes
+   - Create consistent spacing scales
+   - Maintain typography system
+
+3. Performance:
+   - Minimize CSS bundle size
+   - Use efficient selectors
+   - Implement proper CSS containment
+   - Consider critical CSS
+   - Lazy load non-critical styles
+
+4. Organization:
+   - Group related styles
+   - Use consistent naming
+   - Document complex selectors
+   - Maintain browser compatibility
+   - Follow mobile-first approach
+
+5. CSS Architecture:
+   - Follow ITCSS methodology
+   - Use BEM naming convention
+   - Implement CSS Modules where needed
+   - Maintain separation of concerns
+   - Document style dependencies
+
+Common Files:
+-----------
+1. globals.css:
+   - CSS reset/normalize
+   - Base styles
+   - Typography defaults
+   - Utility classes
+
+2. variables.css:
+   - Color definitions
+   - Spacing scales
+   - Breakpoints
+   - Typography sizes
+   - Z-index layers
+
+3. animations/:
+   - Transition presets
+   - Keyframe animations
+   - Loading states
+   - Page transitions
+
+4. themes/:
+   - Color schemes
+   - Dark/light modes
+   - Brand variations
+   - Component themes
+
+Naming Conventions:
+-----------------
+- Use kebab-case for file names
+- Prefix utility classes with 'u-'
+- Prefix theme classes with 't-'
+- Use meaningful class names
+- Document complex selectors
+
+Media Queries:
+------------
+- Use mobile-first approach
+- Define standard breakpoints
+- Maintain consistent usage
+- Document responsive patterns
+- Use logical properties
+
+Tools Integration:
+---------------
+- PostCSS configuration
+- Tailwind utilities
+- CSS Modules setup
+- SCSS/SASS patterns
+- CSS-in-JS patterns

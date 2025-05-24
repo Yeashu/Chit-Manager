@@ -1,0 +1,30 @@
+React Hooks Directory
+===================
+
+Purpose:
+-------
+Store custom React hooks for reusable stateful logic.
+
+Best Practices:
+-------------
+1. Code Quality:
+   - Follow hooks rules
+   - Write unit tests
+   - Document dependencies
+   - Use TypeScript
+   - Handle cleanup properly
+
+2. Performance:
+   - Memoize values properly
+   - Handle effects correctly
+   - Avoid unnecessary re-renders
+   - Use proper dependencies
+
+Common Hooks:
+-----------
+- Data fetching
+- Form handling
+- Authentication
+- State management
+- Window events
+- Media queries

@@ -1,0 +1,29 @@
+TypeScript Types Directory
+========================
+
+Purpose:
+-------
+Store TypeScript type definitions, interfaces, and type utilities.
+
+Best Practices:
+-------------
+1. Organization:
+   - Group related types
+   - Use descriptive names
+   - Document complex types
+   - Use proper exports
+
+2. Type Quality:
+   - Use strict types
+   - Avoid any when possible
+   - Use proper generics
+   - Include JSDoc comments
+   - Consider type utilities
+
+Common Types:
+-----------
+- API response types
+- Component prop types
+- Database models
+- State management types
+- Utility types
