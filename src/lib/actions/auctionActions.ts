@@ -73,17 +73,18 @@ export async function getAuctionDetails(
   try {
     const supabase = await createClient()
     
-    // Get auction details
+    // Get auction details with bids and user profiles
     const { data: auction, error: auctionError } = await supabase
       .from('auctions')
       .select(`
         *,
-        bids:bids(
+        winner:user_profile(name, email),
+        chit_groups(name, monthly_contribution),
+        bids(
           id,
-          user_id,
           bid_amount,
           created_at,
-          users!bids_user_id_fkey(email, full_name)
+          bidder:user_profile(name, email)
         )
       `)
       .eq('id', auctionId)
@@ -91,20 +92,30 @@ export async function getAuctionDetails(
 
     if (auctionError) throw auctionError
 
-    // Transform bids data to match BidWithBidder interface
-    const transformedBids = auction.bids.map((bid: any) => ({
+    if (!auction) {
+      return {
+        success: false,
+        error: 'Auction not found'
+      }
+    }
+
+    // Transform data to match AuctionWithBids interface
+    const transformedBids = (auction.bids || []).map((bid: any) => ({
       id: bid.id,
       auction_id: auctionId,
-      user_id: bid.user_id,
       bid_amount: bid.bid_amount,
-      placed_at: bid.placed_at,
-      bidder_email: bid.users.email,
-      bidder_name: bid.users.full_name
+      placed_at: bid.created_at,
+      bidder_name: bid.bidder?.name,
+      bidder_email: bid.bidder?.email
     }))
 
     const auctionWithBids: AuctionWithBids = {
       ...auction,
-      bids: transformedBids
+      bids: transformedBids,
+      winner_name: auction.winner?.name,
+      winner_email: auction.winner?.email,
+      group_name: auction.chit_groups?.name,
+      group_contribution: auction.chit_groups?.monthly_contribution
     }
 
     return {
@@ -128,15 +139,24 @@ export async function getGroupAuctions(
     
     const { data: auctions, error } = await supabase
       .from('auctions')
-      .select('*')
+      .select(`
+        *,
+        winner:user_profile(name, email)
+      `)
       .eq('group_id', groupId)
       .order('auction_date', { ascending: true })
 
     if (error) throw error
 
+    const transformedAuctions = auctions.map(auction => ({
+      ...auction,
+      winner_name: auction.winner?.name,
+      winner_email: auction.winner?.email
+    }))
+
     return {
       success: true,
-      data: auctions
+      data: transformedAuctions
     }
   } catch (error) {
     console.error('Error getting group auctions:', error)
@@ -211,15 +231,16 @@ export async function closeAuction(
   try {
     const supabase = await createClient()
 
-    // Get auction with lowest bid
+    // Get auction with bids and profiles
     const { data: auction } = await supabase
       .from('auctions')
       .select(`
         *,
-        bids:bids(
+        bids(
           id,
+          bid_amount,
           user_id,
-          bid_amount
+          bidder:user_profile(name, email)
         )
       `)
       .eq('id', auctionId)
@@ -247,21 +268,69 @@ export async function closeAuction(
         winner_bid: winningBid?.bid_amount
       })
       .eq('id', auctionId)
-      .select()
+      .select(`
+        *,
+        winner:user_profile(name, email)
+      `)
       .single()
 
     if (error) throw error
+
+    const transformedAuction = {
+      ...updatedAuction,
+      winner_name: updatedAuction.winner?.name,
+      winner_email: updatedAuction.winner?.email
+    }
 
     revalidatePath(`/GroupDetail/${auction.group_id}`)
     revalidatePath('/Auctions')
 
     return {
       success: true,
-      data: updatedAuction,
+      data: transformedAuction,
       message: 'Auction closed successfully'
     }
   } catch (error) {
     console.error('Error closing auction:', error)
     return { success: false, error: 'Failed to close auction' }
+  }
+}
+
+/**
+ * Get all auctions for the current user across all groups
+ */
+export async function getUserAuctions(): Promise<ActionResponse<Auction[]>> {
+  try {
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+    
+    // Get all auctions for groups where the user is a member
+    const { data: auctions, error } = await supabase
+      .from('auctions')
+      .select(`
+        *,
+        chit_groups!inner(
+          id,
+          name,
+          members!inner(user_id)
+        )
+      `)
+      .eq('chit_groups.members.user_id', user.id)
+      .order('auction_date', { ascending: false })
+
+    if (error) throw error
+
+    return {
+      success: true,
+      data: auctions
+    }
+  } catch (error) {
+    console.error('Error getting user auctions:', error)
+    return { success: false, error: 'Failed to get user auctions' }
   }
 }

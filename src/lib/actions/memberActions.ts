@@ -38,8 +38,8 @@ export async function inviteMemberToGroup(
 
     // Check if user with this email exists
     const { data: targetUser, error: userError } = await supabase
-      .from('users')
-      .select('id')
+      .from('user_profile')
+      .select('user_id')
       .eq('email', email)
       .single();
 
@@ -52,7 +52,7 @@ export async function inviteMemberToGroup(
       .from('group_members')
       .select('id')
       .eq('group_id', groupId)
-      .eq('user_id', targetUser.id)
+      .eq('user_id', targetUser.user_id)
       .single();
 
     if (existingMember) {
@@ -64,7 +64,7 @@ export async function inviteMemberToGroup(
       .from('group_members')
       .insert({
         group_id: groupId,
-        user_id: targetUser.id,
+        user_id: targetUser.user_id,
         role: 'member'
       })
       .select('id')
@@ -116,15 +116,14 @@ export async function getGroupMembers(groupId: string): Promise<ActionResponse<M
       .from('group_members')
       .select(`
         *,
-        users!group_members_user_id_fkey (
-          id,
-          full_name,
-          email,
-          avatar_url
+        profile:user_profile(
+          user_id,
+          name,
+          email
         )
       `)
       .eq('group_id', groupId)
-      .order('joined_at', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (membersError) {
       return { success: false, error: 'Failed to fetch group members' };
@@ -137,14 +136,13 @@ export async function getGroupMembers(groupId: string): Promise<ActionResponse<M
       user_id: member.user_id,
       role: member.role,
       status: 'active' as const,
-      joined_at: member.joined_at,
-      created_at: member.created_at || member.joined_at,
-      updated_at: member.updated_at || member.joined_at,        user: {
-          id: member.users.id,
-          full_name: member.users.full_name,
-          email: member.users.email,
-          avatar_url: member.users.avatar_url
-        }
+      created_at: member.created_at,
+      updated_at: member.updated_at,
+      user: {
+        id: member.profile.user_id,
+        full_name: member.profile.name,
+        email: member.profile.email
+      }
     }));
 
     return { 
@@ -356,6 +354,158 @@ export async function leaveGroup(groupId: string): Promise<ActionResponse<{ left
     };
   } catch (error) {
     console.error('Error leaving group:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get all members across all groups the current user is part of
+ */
+export async function getAllUserMembers(): Promise<ActionResponse<MemberWithUser[]>> {
+  try {
+    const supabase = await createClient();
+    
+    // Check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    // Get all groups the user is a member of
+    const { data: userGroups, error: groupsError } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user.id);
+
+    if (groupsError) {
+      return { success: false, error: 'Failed to fetch user groups' };
+    }
+
+    if (!userGroups || userGroups.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    const groupIds = userGroups.map(group => group.group_id);
+
+    // Get all members from these groups with user details
+    const { data: members, error: membersError } = await supabase
+      .from('group_members')
+      .select(`
+        *,
+        users!group_members_user_id_fkey (
+          id,
+          full_name,
+          email,
+          avatar_url
+        ),
+        chit_groups!group_members_group_id_fkey (
+          name
+        )
+      `)
+      .in('group_id', groupIds)
+      .order('joined_at', { ascending: true });
+
+    if (membersError) {
+      return { success: false, error: 'Failed to fetch members' };
+    }
+
+    // Transform the data to match our type and remove duplicates
+    const memberMap = new Map();
+    
+    (members || []).forEach(member => {
+      const userId = member.user_id;
+      if (!memberMap.has(userId)) {
+        memberMap.set(userId, {
+          id: member.id,
+          group_id: member.group_id,
+          user_id: member.user_id,
+          role: member.role,
+          status: 'active' as const,
+          joined_at: member.joined_at,
+          created_at: member.created_at || member.joined_at,
+          updated_at: member.updated_at || member.joined_at,
+          user: {
+            id: member.users.id,
+            full_name: member.users.full_name,
+            email: member.users.email,
+            avatar_url: member.users.avatar_url
+          },
+          group_name: member.chit_groups.name
+        });
+      }
+    });
+
+    const uniqueMembers = Array.from(memberMap.values());
+
+    return { 
+      success: true, 
+      data: uniqueMembers,
+      message: 'Members fetched successfully'
+    };
+  } catch (error) {
+    console.error('Error fetching all user members:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get member payment status across all groups
+ */
+export async function getMemberPaymentStatus(
+  userId: string
+): Promise<ActionResponse<{ status: 'Paid' | 'Pending' | 'Overdue'; lastPaymentDate?: string }>> {
+  try {
+    const supabase = await createClient();
+    
+    // Get user's recent payments
+    const { data: payments, error } = await supabase
+      .from('payments')
+      .select('status, paid_at, created_at')
+      .eq('user_id', userId)
+      .eq('type', 'contribution')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      return { success: false, error: 'Failed to fetch payment status' };
+    }
+
+    if (!payments || payments.length === 0) {
+      return { 
+        success: true, 
+        data: { status: 'Pending' }
+      };
+    }
+
+    // Determine status based on recent payments
+    const completedPayments = payments.filter(p => p.status === 'completed');
+    const pendingPayments = payments.filter(p => p.status === 'pending');
+    const failedPayments = payments.filter(p => p.status === 'failed');
+
+    let status: 'Paid' | 'Pending' | 'Overdue' = 'Pending';
+    let lastPaymentDate: string | undefined;
+
+    if (completedPayments.length > 0) {
+      status = 'Paid';
+      lastPaymentDate = completedPayments[0].paid_at;
+    } else if (pendingPayments.length > 0) {
+      status = 'Pending';
+    } else if (failedPayments.length > 0) {
+      // Check if failed payment is recent (within last 7 days)
+      const recentFailed = failedPayments.find(p => {
+        const failDate = new Date(p.created_at);
+        const daysDiff = (Date.now() - failDate.getTime()) / (1000 * 60 * 60 * 24);
+        return daysDiff <= 7;
+      });
+      status = recentFailed ? 'Overdue' : 'Pending';
+    }
+
+    return { 
+      success: true, 
+      data: { status, lastPaymentDate }
+    };
+  } catch (error) {
+    console.error('Error getting member payment status:', error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

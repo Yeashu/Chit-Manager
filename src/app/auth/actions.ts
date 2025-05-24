@@ -41,7 +41,8 @@ export async function signup(formData: FormData) {
     redirect('/signup?message=Email and password are required')
   }
 
-  const { error } = await supabase.auth.signUp({
+  // First, create the auth user
+  const { data: authData, error: signupError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -52,14 +53,32 @@ export async function signup(formData: FormData) {
     }
   })
 
-  if (error) {
-    console.error('Signup error:', error)
-    if (error.message.includes('already registered')) {
+  if (signupError) {
+    console.error('Signup error:', signupError)
+    if (signupError.message.includes('already registered')) {
       redirect('/signup?message=User already exists')
-    } else if (error.message.includes('Password')) {
+    } else if (signupError.message.includes('Password')) {
       redirect('/signup?message=Password is too short')
     } else {
       redirect('/signup?message=Error creating account')
+    }
+  }
+
+  if (authData.user) {
+    // Then create the user profile
+    const { error: profileError } = await supabase
+      .from('user_profile')
+      .insert({
+        user_id: authData.user.id,
+        name: fullName,
+        email: email,
+        created_at: new Date().toISOString()
+      })
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+      // We could handle this more gracefully, but for now we'll continue
+      // since the auth user is created and they can try setting up their profile later
     }
   }
 

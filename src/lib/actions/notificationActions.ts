@@ -29,7 +29,7 @@ export async function createInvitation(
       .from('notifications')
       .insert({
         group_id: groupId,
-        invitedBy_id: user.id,
+        invited_by_id: user.id,
         invited_user_id: invitedUserId,
         status: 'pending',
         type: 'group_invite'
@@ -64,30 +64,40 @@ export async function getUserNotifications(): Promise<ActionResponse<Notificatio
       return { success: false, error: 'Unauthorized' }
     }
 
-    // Get notifications with context
+    // Get notifications with all context using the new user_profile table
     const { data: notifications, error } = await supabase
       .from('notifications')
       .select(`
         *,
-        chit_groups!notifications_group_id_fkey(name),
-        users!notifications_invitedBy_id_fkey(email, full_name)
+        chit_groups(name),
+        inviter:user_profile!notifications_invited_by_id_fkey(name, email),
+        invited_user:user_profile!notifications_invited_user_id_fkey(name, email)
       `)
       .eq('invited_user_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Transform to match NotificationWithContext interface
-    const transformedNotifications = notifications.map(notification => ({
+    if (!notifications || notifications.length === 0) {
+      return {
+        success: true,
+        data: []
+      }
+    }
+
+    // Transform data to match NotificationWithContext type
+    const notificationsWithContext = notifications.map((notification: any) => ({
       ...notification,
       group_name: notification.chit_groups?.name,
-      inviter_email: notification.users?.email,
-      inviter_name: notification.users?.full_name
+      inviter_name: notification.inviter?.name,
+      inviter_email: notification.inviter?.email,
+      invited_user_name: notification.invited_user?.name,
+      invited_user_email: notification.invited_user?.email
     }))
 
     return {
       success: true,
-      data: transformedNotifications
+      data: notificationsWithContext
     }
   } catch (error) {
     console.error('Error getting notifications:', error)

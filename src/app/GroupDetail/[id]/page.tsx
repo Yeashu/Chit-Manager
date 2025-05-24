@@ -4,9 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
+import InviteMemberModal from '@/components/InviteMemberModal';
+import ScheduleAuctionModal from '@/components/ScheduleAuctionModal';
+import PlaceBidModal from '@/components/PlaceBidModal';
+import PaymentModal from '@/components/PaymentModal';
 import { getGroupDetails, updateGroup, deleteGroup } from '@/lib/actions/groupActions';
 import { getGroupMembers, removeMemberFromGroup, updateMemberRole, leaveGroup } from '@/lib/actions/memberActions';
-import type { ChitGroupWithCreator, MemberWithUser } from '@/types';
+import { getGroupAuctions } from '@/lib/actions/auctionActions';
+import { getGroupPayments } from '@/lib/actions/paymentActions';
+import type { ChitGroupWithCreator, MemberWithUser, Auction, Payment } from '@/types';
 import { useRouter } from 'next/navigation';
 
 interface GroupDetailProps {
@@ -21,9 +27,16 @@ export default function GroupDetail({ params }: GroupDetailProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [groupData, setGroupData] = useState<ChitGroupWithCreator | null>(null);
   const [members, setMembers] = useState<MemberWithUser[]>([]);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showAuctionModal, setShowAuctionModal] = useState(false);
+  const [showBidModal, setShowBidModal] = useState(false);
+  const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Fetch group details and members
   useEffect(() => {
@@ -44,6 +57,18 @@ export default function GroupDetail({ params }: GroupDetailProps) {
         const membersResponse = await getGroupMembers(id);
         if (membersResponse.success && membersResponse.data) {
           setMembers(membersResponse.data);
+        }
+
+        // Fetch group auctions
+        const auctionsResponse = await getGroupAuctions(id);
+        if (auctionsResponse.success && auctionsResponse.data) {
+          setAuctions(auctionsResponse.data);
+        }
+
+        // Fetch group payments
+        const paymentsResponse = await getGroupPayments(id);
+        if (paymentsResponse.success && paymentsResponse.data) {
+          setPayments(paymentsResponse.data);
         }
       } catch (err) {
         setError('An unexpected error occurred');
@@ -277,9 +302,64 @@ export default function GroupDetail({ params }: GroupDetailProps) {
                 </div>
               </div>
               
+              {/* Recent Activity */}
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+                <div className="bg-[#2a3a2a] rounded-lg p-4">
+                  <div className="space-y-3">
+                    {auctions.slice(0, 3).map((auction) => (
+                      <div key={auction.id} className="flex items-center justify-between py-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-white text-sm">Auction Round {auction.round_number}</div>
+                            <div className="text-gray-400 text-xs">{auction.status}</div>
+                          </div>
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          {new Date(auction.auction_date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {payments.slice(0, 2).map((payment) => (
+                      <div key={payment.id} className="flex items-center justify-between py-2">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            payment.type === 'contribution' ? 'bg-green-600' : 'bg-blue-600'
+                          }`}>
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-white text-sm">{payment.type} - ${payment.amount}</div>
+                            <div className="text-gray-400 text-xs">{payment.status}</div>
+                          </div>
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString() : 'Pending'}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {auctions.length === 0 && payments.length === 0 && (
+                      <div className="text-center py-4 text-gray-400">
+                        No recent activity
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex mt-6 space-x-4">
-                <Button>Invite Members</Button>
-                <Button variant="secondary">Schedule Auction</Button>
+                <Button onClick={() => setShowInviteModal(true)}>Invite Members</Button>
+                <Button variant="secondary" onClick={() => setShowAuctionModal(true)}>Schedule Auction</Button>
+                <Button variant="outline" onClick={() => setShowPaymentModal(true)}>Make Payment</Button>
               </div>
               
               <div className="mt-6">
@@ -299,7 +379,7 @@ export default function GroupDetail({ params }: GroupDetailProps) {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Members ({members.length})</h2>
-                <Button>Invite Member</Button>
+                <Button onClick={() => setShowInviteModal(true)}>Invite Member</Button>
               </div>
               
               <div className="bg-[#2a3a2a] rounded-lg p-4">
@@ -355,12 +435,203 @@ export default function GroupDetail({ params }: GroupDetailProps) {
             </div>
           )}
           
-          {activeTab !== 'overview' && activeTab !== 'members' && (
+          {activeTab === 'auctions' && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Auctions ({auctions.length})</h2>
+                <Button onClick={() => setShowAuctionModal(true)}>Schedule Auction</Button>
+              </div>
+              
+              <div className="bg-[#2a3a2a] rounded-lg p-4">
+                {auctions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 mb-4">No auctions scheduled yet</div>
+                    <Button onClick={() => setShowAuctionModal(true)}>Schedule First Auction</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {auctions.map((auction) => (
+                      <div key={auction.id} className="flex items-center justify-between p-4 bg-[#1c2c1c] rounded-lg border border-[#3a4a3a]">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                            <span className="text-white font-bold">R{auction.round_number}</span>
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">Round {auction.round_number}</div>
+                            <div className="text-sm text-gray-400">
+                              Auction: {new Date(auction.auction_date).toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              Deadline: {new Date(auction.deadline).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <span className={`px-3 py-1 rounded-full text-sm ${
+                            auction.status === 'scheduled' ? 'bg-yellow-600/20 text-yellow-400' :
+                            auction.status === 'open' ? 'bg-green-600/20 text-green-400' :
+                            auction.status === 'closed' ? 'bg-gray-600/20 text-gray-400' :
+                            'bg-red-600/20 text-red-400'
+                          }`}>
+                            {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
+                          </span>
+                          
+                          {auction.winner_id && (
+                            <div className="text-right">
+                              <div className="text-sm text-gray-400">Winner</div>
+                              <div className="text-white font-medium">${auction.winner_bid}</div>
+                            </div>
+                          )}
+                          
+                          {auction.status === 'open' && (
+                            <Button 
+                              variant="secondary" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAuction(auction);
+                                setShowBidModal(true);
+                              }}
+                            >
+                              Place Bid
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Payments ({payments.length})</h2>
+                <Button onClick={() => setShowPaymentModal(true)}>Make Payment</Button>
+              </div>
+              
+              <div className="bg-[#2a3a2a] rounded-lg p-4">
+                {payments.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">No payments recorded yet</p>
+                ) : (
+                  <div className="space-y-4">
+                    {payments.map((payment) => (
+                      <div key={payment.id} className="flex items-center justify-between p-4 bg-[#1c2c1c] rounded-lg border border-[#3a4a3a]">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            payment.type === 'contribution' ? 'bg-green-600' :
+                            payment.type === 'payout' ? 'bg-blue-600' : 'bg-gray-600'
+                          }`}>
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d={payment.type === 'contribution' ? "M12 4v16m8-8H4" : "M19 14l-7 7m0 0l-7-7m7 7V3"} />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">
+                              {payment.type.charAt(0).toUpperCase() + payment.type.slice(1)}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString() : 'Pending'}
+                            </div>
+                            {payment.auction_id && (
+                              <div className="text-sm text-gray-400">Auction payout</div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="text-white font-bold">${payment.amount}</div>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            payment.status === 'completed' ? 'bg-green-600/20 text-green-400' :
+                            payment.status === 'pending' ? 'bg-yellow-600/20 text-yellow-400' :
+                            'bg-red-600/20 text-red-400'
+                          }`}>
+                            {payment.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab !== 'overview' && activeTab !== 'members' && activeTab !== 'auctions' && activeTab !== 'payments' && (
             <div className="py-8 text-center text-gray-400">
               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} tab content will be available soon.
             </div>
           )}
         </div>
+
+        {/* Invite Member Modal */}
+        <InviteMemberModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          groupId={id}
+          onInviteSuccess={async () => {
+            // Refresh members list after successful invitation
+            const membersResponse = await getGroupMembers(id);
+            if (membersResponse.success && membersResponse.data) {
+              setMembers(membersResponse.data);
+            }
+          }}
+        />
+
+        {/* Schedule Auction Modal */}
+        <ScheduleAuctionModal
+          isOpen={showAuctionModal}
+          onClose={() => setShowAuctionModal(false)}
+          groupId={id}
+          onAuctionCreated={async () => {
+            // Refresh auctions list after successful creation
+            const auctionsResponse = await getGroupAuctions(id);
+            if (auctionsResponse.success && auctionsResponse.data) {
+              setAuctions(auctionsResponse.data);
+            }
+          }}
+        />
+
+        {/* Place Bid Modal */}
+        {selectedAuction && (
+          <PlaceBidModal
+            isOpen={showBidModal}
+            onClose={() => {
+              setShowBidModal(false);
+              setSelectedAuction(null);
+            }}
+            auctionId={selectedAuction.id}
+            roundNumber={selectedAuction.round_number}
+            deadline={selectedAuction.deadline}
+            onBidPlaced={async () => {
+              // Refresh auctions list after successful bid
+              const auctionsResponse = await getGroupAuctions(id);
+              if (auctionsResponse.success && auctionsResponse.data) {
+                setAuctions(auctionsResponse.data);
+              }
+            }}
+          />
+        )}
+
+        {/* Payment Modal */}
+        {groupData && (
+          <PaymentModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            groupId={id}
+            monthlyContribution={groupData.monthly_contribution}
+            onPaymentMade={async () => {
+              // Refresh payments list after successful payment
+              const paymentsResponse = await getGroupPayments(id);
+              if (paymentsResponse.success && paymentsResponse.data) {
+                setPayments(paymentsResponse.data);
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );

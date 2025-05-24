@@ -1,77 +1,88 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import SearchInput from '@/components/SearchInput';
 import FilterButtons from '@/components/FilterButtons';
 import MemberCard from '@/components/MemberCard';
 import Button from '@/components/Button';
+import InviteMemberModal from '@/components/InviteMemberModal';
+import { getAllUserMembers, getMemberPaymentStatus } from '@/lib/actions/memberActions';
+import type { MemberWithUser } from '@/types';
 
 const filterOptions = [
-  { id: 'online', label: 'Online' },
+  { id: 'all', label: 'All' },
   { id: 'paid', label: 'Paid' },
   { id: 'pending', label: 'Pending' },
+  { id: 'overdue', label: 'Overdue' },
 ];
 
-// Mock data for members
-const mockMembers = [
-  {
-    id: '1',
-    name: 'Sophia Clark',
-    avatarUrl: '/avatars/avatar1.png',
-    trustScore: 95,
-    paymentStatus: 'Paid' as const,
-  },
-  {
-    id: '2',
-    name: 'Ethan Miller',
-    avatarUrl: '/avatars/avatar2.png',
-    trustScore: 88,
-    paymentStatus: 'Pending' as const,
-  },
-  {
-    id: '3',
-    name: 'Olivia Davis',
-    avatarUrl: '/avatars/avatar3.png',
-    trustScore: 92,
-    paymentStatus: 'Paid' as const,
-  },
-  {
-    id: '4',
-    name: 'Noah Wilson',
-    avatarUrl: '/avatars/avatar4.png',
-    trustScore: 75,
-    paymentStatus: 'Overdue' as const,
-  },
-  {
-    id: '5',
-    name: 'Ava Thompson',
-    avatarUrl: '/avatars/avatar5.png',
-    trustScore: 98,
-    paymentStatus: 'Paid' as const,
-  },
-  {
-    id: '6',
-    name: 'Liam Garcia',
-    avatarUrl: '/avatars/avatar6.png',
-    trustScore: 80,
-    paymentStatus: 'Paid' as const,
-  },
-];
+interface MemberWithPaymentStatus extends MemberWithUser {
+  paymentStatus: 'Paid' | 'Pending' | 'Overdue';
+  trustScore: number;
+  group_name?: string;
+}
 
 export default function Members() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('online');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [members, setMembers] = useState<MemberWithPaymentStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // Load members on component mount
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const loadMembers = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await getAllUserMembers();
+      if (response.success && response.data) {
+        // Fetch payment status for each member
+        const membersWithStatus = await Promise.all(
+          response.data.map(async (member) => {
+            const paymentResponse = await getMemberPaymentStatus(member.user_id);
+            const paymentStatus = paymentResponse.success ? 
+              paymentResponse.data?.status || 'Pending' : 'Pending';
+            
+            return {
+              ...member,
+              paymentStatus,
+              trustScore: Math.floor(Math.random() * 40) + 60, // Generate random trust score 60-100
+              group_name: (member as any).group_name
+            };
+          })
+        );
+        
+        setMembers(membersWithStatus);
+      } else {
+        setError(response.error || 'Failed to load members');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter members based on search query and active filter
-  const filteredMembers = mockMembers.filter((member) => {
-    const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeFilter === 'online') return matchesSearch;
+  const filteredMembers = members.filter((member) => {
+    const matchesSearch = (member.user.full_name || member.user.email)
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    
+    if (activeFilter === 'all') return matchesSearch;
     
     // Filter by payment status
     return matchesSearch && (
       (activeFilter === 'paid' && member.paymentStatus === 'Paid') ||
-      (activeFilter === 'pending' && member.paymentStatus === 'Pending')
+      (activeFilter === 'pending' && member.paymentStatus === 'Pending') ||
+      (activeFilter === 'overdue' && member.paymentStatus === 'Overdue')
     );
   });
 
