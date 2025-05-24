@@ -91,7 +91,7 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
         <div className="border-t border-[#2a3a2a] pt-4 mt-4">
           <div className="mb-3 px-2">
             <div className="text-sm font-medium text-white truncate">
-              {user.user_metadata?.full_name || user.email}
+              {user.user_metadata?.name || user.email}
             </div>
             <div className="text-xs text-gray-400 truncate">
               {user.email}

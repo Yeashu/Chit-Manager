@@ -35,7 +35,7 @@ export async function signup(formData: FormData) {
   // Validate inputs
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const fullName = formData.get('full_name') as string
+  const name = formData.get('name') as string
 
   if (!email || !password) {
     redirect('/signup?message=Email and password are required')
@@ -48,7 +48,7 @@ export async function signup(formData: FormData) {
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
       data: {
-        full_name: fullName,
+        name: name,
       }
     }
   })

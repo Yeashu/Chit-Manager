@@ -72,7 +72,7 @@ export default function Members() {
 
   // Filter members based on search query and active filter
   const filteredMembers = members.filter((member) => {
-    const matchesSearch = (member.user.full_name || member.user.email)
+    const matchesSearch = (member.user.name || member.user.email)
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     

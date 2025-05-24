@@ -40,13 +40,12 @@ export interface Member {
 export interface MemberWithUser extends Member {
   user: {
     id: string;
-    full_name?: string;
+    name?: string;
     email: string;
-    avatar_url?: string;
   };
   invited_by_user?: {
     id: string;
-    full_name?: string;
+    name?: string;
     email: string;
   };
 }

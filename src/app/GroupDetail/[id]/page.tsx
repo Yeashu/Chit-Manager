@@ -391,11 +391,11 @@ export default function GroupDetail({ params }: GroupDetailProps) {
                       <div key={member.id} className="flex items-center justify-between p-3 bg-[#1c2c1c] rounded-lg">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white mr-3">
-                            {member.user.full_name?.charAt(0) || member.user.email.charAt(0)}
+                            {member.user.name?.charAt(0) || member.user.email.charAt(0)}
                           </div>
                           <div>
                             <div className="text-white font-medium">
-                              {member.user.full_name || member.user.email}
+                              {member.user.name || member.user.email}
                             </div>
                             <div className="text-sm text-gray-400">
                               {member.user.email} • {member.role}

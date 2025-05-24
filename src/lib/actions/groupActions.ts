@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 import type { 
   ApiResponse, 
   ApiSuccessResponse, 
-  ChitGroup, 
+  ChitGroup,
   ChitGroupWithCreator 
 } from '@/types'
 
@@ -171,18 +171,18 @@ export async function getGroupDetails(groupId: string): Promise<ApiResponse<Chit
       return { data: null, error: 'Group not found' }
     }
 
-    // Get creator details separately
+    // Get creator details from user_profile
     const { data: creatorData, error: creatorError } = await supabase
-      .from('auth.users')
-      .select('email, raw_user_meta_data')
-      .eq('id', groupData.created_by)
+      .from('user_profile')
+      .select('email, name')
+      .eq('user_id', groupData.created_by)
       .single()
 
     // Format the response with creator details (if available)
     const groupWithCreator: ChitGroupWithCreator = {
       ...groupData,
       creator_email: creatorData?.email || undefined,
-      creator_name: creatorData?.raw_user_meta_data?.full_name || undefined
+      creator_name: creatorData?.name || undefined
     }
 
     return { data: groupWithCreator, error: null }

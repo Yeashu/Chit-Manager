@@ -2,15 +2,15 @@ import React from 'react';
 import Image from 'next/image';
 
 interface MemberCardProps {
-  name: string;
-  avatarUrl: string;
+  name?: string;
+  email: string;
   trustScore: number;
   paymentStatus: 'Paid' | 'Pending' | 'Overdue';
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
   name,
-  avatarUrl,
+  email,
   trustScore,
   paymentStatus,
 }) => {
@@ -29,15 +29,10 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-[#f8ece0]">
-        <Image
-          src={avatarUrl}
-          alt={`${name}'s avatar`}
-          fill
-          style={{ objectFit: 'cover' }}
-        />
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-[#2a3424] flex items-center justify-center text-2xl">
+        {(name || email).charAt(0).toUpperCase()}
       </div>
-      <h3 className="mt-2 font-medium text-sm md:text-base">{name}</h3>
+      <h3 className="mt-2 font-medium text-sm md:text-base">{name || email}</h3>
       <p className="text-xs md:text-sm text-gray-600">Trust Score: {trustScore}</p>
       <p className={`text-xs md:text-sm ${getPaymentStatusColor()}`}>
         Payment Status: {paymentStatus}

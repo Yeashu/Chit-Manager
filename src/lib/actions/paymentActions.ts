@@ -83,7 +83,7 @@ export async function getUserPayments(
         *,
         chit_groups!payments_group_id_fkey(name),
         auctions!payments_auction_id_fkey(round_number),
-        users!payments_user_id_fkey(email, full_name)
+        user_profile!payments_user_id_fkey(email, name)
       `)
       .eq('user_id', userId)
       .order('paid_at', { ascending: false })
@@ -95,8 +95,8 @@ export async function getUserPayments(
       ...payment,
       group_name: payment.chit_groups?.name,
       auction_round: payment.auctions?.round_number,
-      user_email: payment.users?.email,
-      user_name: payment.users?.full_name
+      user_email: payment.user_profile?.email,
+      user_name: payment.user_profile?.name
     }))
 
     return {
@@ -125,7 +125,7 @@ export async function getGroupPayments(
         *,
         chit_groups!payments_group_id_fkey(name),
         auctions!payments_auction_id_fkey(round_number),
-        users!payments_user_id_fkey(email, full_name)
+        user_profile!payments_user_id_fkey(email, name)
       `)
       .eq('group_id', groupId)
       .order('paid_at', { ascending: false })
@@ -137,8 +137,8 @@ export async function getGroupPayments(
       ...payment,
       group_name: payment.chit_groups?.name,
       auction_round: payment.auctions?.round_number,
-      user_email: payment.users?.email,
-      user_name: payment.users?.full_name
+      user_email: payment.user_profile?.email,
+      user_name: payment.user_profile?.name
     }))
 
     return {

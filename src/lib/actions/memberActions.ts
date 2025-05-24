@@ -392,11 +392,10 @@ export async function getAllUserMembers(): Promise<ActionResponse<MemberWithUser
       .from('group_members')
       .select(`
         *,
-        users!group_members_user_id_fkey (
-          id,
-          full_name,
-          email,
-          avatar_url
+        user_profile!group_members_user_id_fkey (
+          user_id,
+          name,
+          email
         ),
         chit_groups!group_members_group_id_fkey (
           name
@@ -425,10 +424,9 @@ export async function getAllUserMembers(): Promise<ActionResponse<MemberWithUser
           created_at: member.created_at || member.joined_at,
           updated_at: member.updated_at || member.joined_at,
           user: {
-            id: member.users.id,
-            full_name: member.users.full_name,
-            email: member.users.email,
-            avatar_url: member.users.avatar_url
+            id: member.user_profile.user_id,
+            full_name: member.user_profile.name,
+            email: member.user_profile.email
           },
           group_name: member.chit_groups.name
         });
