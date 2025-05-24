@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Link from 'next/link';
+import { pageAnimations, hoverAnimations } from '@/utils/animations';
 
 type PaymentStatus = 'all' | 'completed' | 'pending' | 'failed';
 
@@ -18,23 +19,6 @@ interface Payment {
 }
 
 export default function PaymentsPage() {
-  // Animation variants
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-  };
-
   // Mock payment data
   const [activeFilter, setActiveFilter] = useState<PaymentStatus>('all');
   const [payments, setPayments] = useState<Payment[]>([
@@ -129,7 +113,7 @@ export default function PaymentsPage() {
 
         {/* Stats Cards */}
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
@@ -159,7 +143,7 @@ export default function PaymentsPage() {
           ].map((stat, index) => (
             <motion.div 
               key={index}
-              variants={item}
+              variants={pageAnimations.item}
               className="bg-[#232b1c] border border-[#2a3424] p-6 rounded-xl hover:border-[#a3e635]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#a3e635]/5"
             >
               <div className="flex justify-between items-start">
@@ -180,7 +164,7 @@ export default function PaymentsPage() {
 
         {/* Filters */}
         <motion.div 
-          variants={item}
+          variants={pageAnimations.item}
           className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-4 mb-8"
         >
           <div className="flex flex-wrap items-center gap-3">
@@ -205,7 +189,7 @@ export default function PaymentsPage() {
 
         {/* Payments Table */}
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
           className="bg-[#232b1c] border border-[#2a3424] rounded-xl overflow-hidden"
@@ -227,7 +211,7 @@ export default function PaymentsPage() {
                   {filteredPayments.map((payment) => (
                     <motion.tr 
                       key={payment.id}
-                      variants={item}
+                      variants={pageAnimations.item}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}

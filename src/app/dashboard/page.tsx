@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Link from 'next/link';
+import { pageAnimations, hoverAnimations } from '@/utils/animations';
 
 export default function Home() {
   // Mock data for the dashboard overview
@@ -39,23 +40,6 @@ export default function Home() {
     ]
   };
 
-  // Animation variants
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-  };
-
   return (
     <div className="flex min-h-screen bg-[#181f16] text-white font-[family-name:var(--font-geist-sans)] overflow-hidden">
       <Sidebar activeItem="dashboard" />
@@ -82,7 +66,7 @@ export default function Home() {
         </motion.div>
         
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
@@ -95,7 +79,7 @@ export default function Home() {
           ].map((stat, index) => (
             <motion.div 
               key={index}
-              variants={item}
+              variants={pageAnimations.item}
               className="bg-[#232b1c] border border-[#2a3424] p-6 rounded-xl hover:border-[#a3e635]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#a3e635]/5"
             >
               <div className="text-4xl font-bold mb-2 text-[#a3e635]">{stat.value}</div>
@@ -105,13 +89,13 @@ export default function Home() {
         </motion.div>
         
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8"
         >
           <motion.div 
-            variants={item}
+            variants={pageAnimations.item}
             className="lg:col-span-2"
           >
             <h2 className="text-xl font-semibold mb-4 text-white">My Groups</h2>
@@ -140,8 +124,8 @@ export default function Home() {
               ].map((group, index) => (
                 <motion.div 
                   key={group.id}
-                  variants={item}
-                  whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                  variants={pageAnimations.item}
+                  whileHover={hoverAnimations.lift}
                   transition={{ type: 'spring', stiffness: 300 }}
                 >
                   <Link href={group.isViewAll ? '/MyGroups' : `/GroupDetail/${group.id}`}>
@@ -175,7 +159,7 @@ export default function Home() {
           </motion.div>
           
           <motion.div 
-            variants={item}
+            variants={pageAnimations.item}
             className="relative"
           >
             <h2 className="text-xl font-semibold mb-4 text-white">Recent Activity</h2>
@@ -218,7 +202,7 @@ export default function Home() {
         </motion.div>
         
         <motion.div
-          variants={item}
+          variants={pageAnimations.item}
           className="mt-12"
         >
           <h2 className="text-xl font-semibold mb-6 text-white">Quick Actions</h2>
@@ -226,7 +210,7 @@ export default function Home() {
             {dashboardData.quickActions.map((action, index) => (
               <motion.div
                 key={index}
-                whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                whileHover={hoverAnimations.lift}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
                 <Link href={action.href}>

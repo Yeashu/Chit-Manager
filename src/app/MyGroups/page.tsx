@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import Link from 'next/link';
+import { pageAnimations, hoverAnimations } from '@/utils/animations';
 
 const filterOptions = [
   { id: 'active', label: 'Active' },
@@ -59,23 +60,6 @@ const mockGroups = [
   },
 ];
 
-// Animation variants
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-};
-
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('active');
@@ -125,7 +109,7 @@ export default function MyGroups() {
         
         {/* Search and Filter */}
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
           className="mb-8"
@@ -176,7 +160,7 @@ export default function MyGroups() {
         </motion.div>
         
         <motion.div 
-          variants={container}
+          variants={pageAnimations.container}
           initial="hidden"
           animate="show"
         >
@@ -186,8 +170,8 @@ export default function MyGroups() {
                 {filteredGroups.map((group) => (
                   <motion.div
                     key={group.id}
-                    variants={item}
-                    whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                    variants={pageAnimations.item}
+                    whileHover={hoverAnimations.lift}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
                     <Link href={`/GroupDetail/${group.id}`}>

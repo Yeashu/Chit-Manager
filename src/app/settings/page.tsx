@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
+import { pageAnimations, hoverAnimations } from '@/utils/animations';
 
 // Settings sections
 const settingsSections = [
@@ -22,23 +23,6 @@ const userData = {
   phone: '+1 (555) 123-4567',
   avatar: '👨‍💼',
   joinedDate: 'January 2023',
-};
-
-// Animation variants
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 type SettingSection = 'profile' | 'account' | 'notifications' | 'privacy' | 'billing' | 'appearance';
@@ -71,12 +55,12 @@ export default function SettingsPage() {
       case 'profile':
         return (
           <motion.div 
-            variants={container}
+            variants={pageAnimations.container}
             initial="hidden"
             animate="show"
             className="space-y-6"
           >
-            <motion.div variants={item} className="flex items-center space-x-6">
+            <motion.div variants={pageAnimations.item} className="flex items-center space-x-6">
               <div className="w-24 h-24 rounded-full bg-[#2a3424] flex items-center justify-center text-4xl">
                 {userData.avatar}
               </div>
@@ -91,7 +75,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div variants={pageAnimations.item} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-[#cbd5c0] mb-1">Full Name</label>
                   {isEditing ? (
@@ -142,7 +126,7 @@ export default function SettingsPage() {
                 </div>
               </motion.div>
 
-              <motion.div variants={item} className="flex space-x-3 pt-4">
+              <motion.div variants={pageAnimations.item} className="flex space-x-3 pt-4">
                 {isEditing ? (
                   <>
                     <Button type="submit" className="bg-[#a3e635] text-[#181f16] hover:bg-[#8ac926]">
@@ -181,12 +165,12 @@ export default function SettingsPage() {
       case 'account':
         return (
           <motion.div 
-            variants={container}
+            variants={pageAnimations.container}
             initial="hidden"
             animate="show"
             className="space-y-6"
           >
-            <motion.div variants={item} className="space-y-6">
+            <motion.div variants={pageAnimations.item} className="space-y-6">
               <div className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
                 <h3 className="text-lg font-medium text-white mb-4">Change Password</h3>
                 <div className="space-y-4">
@@ -246,12 +230,12 @@ export default function SettingsPage() {
       case 'notifications':
         return (
           <motion.div 
-            variants={container}
+            variants={pageAnimations.container}
             initial="hidden"
             animate="show"
             className="space-y-6"
           >
-            <motion.div variants={item} className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
+            <motion.div variants={pageAnimations.item} className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
               <h3 className="text-lg font-medium text-white mb-6">Email Notifications</h3>
               <div className="space-y-4">
                 {[
@@ -275,7 +259,7 @@ export default function SettingsPage() {
               </div>
             </motion.div>
 
-            <motion.div variants={item} className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
+            <motion.div variants={pageAnimations.item} className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6">
               <h3 className="text-lg font-medium text-white mb-6">Push Notifications</h3>
               <div className="space-y-4">
                 {[
@@ -304,7 +288,7 @@ export default function SettingsPage() {
       default:
         return (
           <motion.div 
-            variants={container}
+            variants={pageAnimations.container}
             initial="hidden"
             animate="show"
             className="flex flex-col items-center justify-center py-16 text-center"
