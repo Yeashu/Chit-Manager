@@ -10,13 +10,14 @@ import PlaceBidModal from '@/components/PlaceBidModal';
 import { getUserAuctions, getAuctionDetails } from '@/lib/actions/auctionActions';
 import type { Auction } from '@/types';
 
-type FilterType = 'all' | 'completed' | 'upcoming' | 'open';
+type FilterType = 'all' | 'scheduled' | 'open' | 'closed' | 'cancelled';
 
 const filterOptions = [
   { id: 'all' as const, label: 'All' },
-  { id: 'upcoming' as const, label: 'Upcoming' },
+  { id: 'scheduled' as const, label: 'Scheduled' },
   { id: 'open' as const, label: 'Open' },
-  { id: 'completed' as const, label: 'Completed' },
+  { id: 'closed' as const, label: 'Closed' },
+  { id: 'cancelled' as const, label: 'Cancelled' }
 ];
 
 export default function Auctions() {
@@ -29,9 +30,21 @@ export default function Auctions() {
   const [placeBidModalOpen, setPlaceBidModalOpen] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   
-  // Separate state for each calendar
-  const [calendar1, setCalendar1] = useState({ month: 'July', year: 2024 });
-  const [calendar2, setCalendar2] = useState({ month: 'August', year: 2024 });
+  // Initialize calendars with current month and next month
+  const currentDate = new Date();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  const [calendar1, setCalendar1] = useState({ 
+    month: monthNames[currentDate.getMonth()], 
+    year: currentDate.getFullYear() 
+  });
+  
+  const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  const [calendar2, setCalendar2] = useState({ 
+    month: monthNames[nextMonth.getMonth()], 
+    year: nextMonth.getFullYear() 
+  });
 
   // Load auctions on component mount
   useEffect(() => {
@@ -56,15 +69,52 @@ export default function Auctions() {
     }
   };
 
-  // Filter auctions based on status
+  // Filter auctions based on status and date
   const filteredAuctions = auctions.filter(auction => {
-    if (activeFilter === 'all') return true;
-    return auction.status === activeFilter;
+    // Base status filter
+    if (activeFilter !== 'all' && auction.status !== activeFilter) {
+      return false;
+    }
+
+    // Always show today's auctions regardless of filter
+    const today = new Date();
+    const auctionDate = new Date(auction.auction_date);
+    if (
+      auctionDate.getDate() === today.getDate() &&
+      auctionDate.getMonth() === today.getMonth() &&
+      auctionDate.getFullYear() === today.getFullYear()
+    ) {
+      return true;
+    }
+
+    return true;
+  }).sort((a, b) => {
+    // Sort by date descending
+    const dateA = new Date(a.auction_date);
+    const dateB = new Date(b.auction_date);
+    
+    // If dates are equal, sort by status priority
+    if (dateA.getTime() === dateB.getTime()) {
+      const statusPriority: Record<string, number> = {
+        'open': 1,
+        'scheduled': 2,
+        'closed': 3,
+        'cancelled': 4
+      };
+      return (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99);
+    }
+
+    return dateB.getTime() - dateA.getTime();
   });
 
-  // Get next upcoming auction for countdown
+  // Get next upcoming auction for countdown (only scheduled or open)
   const upcomingAuction = auctions
-    .filter(auction => auction.status === 'scheduled' || auction.status === 'open')
+    .filter(auction => {
+      const auctionDate = new Date(auction.auction_date);
+      const now = new Date();
+      return (auction.status === 'scheduled' || auction.status === 'open') && 
+             auctionDate.getTime() > now.getTime();
+    })
     .sort((a, b) => new Date(a.auction_date).getTime() - new Date(b.auction_date).getTime())[0];
 
   // Calculate countdown for next auction
@@ -87,12 +137,13 @@ export default function Auctions() {
 
   const countdown = getCountdown();
   
-  // Extract auction dates for calendar highlighting
+  // Extract auction dates for calendar highlighting - updated to include status
   const getAuctionDatesForMonth = (month: number, year: number) => {
     return auctions
       .filter((auction: Auction) => {
         const auctionDate = new Date(auction.auction_date);
-        return auctionDate.getMonth() === month && auctionDate.getFullYear() === year;
+        return auctionDate.getMonth() === month && auctionDate.getFullYear() === year &&
+               (auction.status === 'scheduled' || auction.status === 'open');
       })
       .map((auction: Auction) => new Date(auction.auction_date).getDate());
   };
@@ -231,10 +282,10 @@ export default function Auctions() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                              {auction.winner_id ? 'Winner determined' : '-'}
+                              {auction.status === 'closed' ? (auction.winner_id ? auction.winner_name || 'Winner determined' : 'No winner') : 'To be determined'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                              {auction.winner_bid ? formatCurrency(auction.winner_bid) : '-'}
+                              {auction.status === 'closed' ? (auction.winner_bid ? formatCurrency(auction.winner_bid) : '-') : 'To be determined'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               {auction.status === 'open' && (

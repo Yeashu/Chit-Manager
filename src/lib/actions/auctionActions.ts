@@ -35,7 +35,7 @@ export async function createAuction(
       return { success: false, error: 'Group must be active to create auctions' }
     }
 
-    // Create the auction
+    // Create the auction with admin as default winner
     const { data: auction, error } = await supabase
       .from('auctions')
       .insert({
@@ -43,7 +43,9 @@ export async function createAuction(
         round_number: formData.round_number,
         auction_date: formData.auction_date,
         deadline: formData.deadline,
-        status: 'scheduled'
+        status: 'scheduled',
+        winner_id: group.created_by, // Set group admin as default winner
+        winner_bid: '0' // Default bid amount for admin
       })
       .select()
       .single()
@@ -314,20 +316,28 @@ export async function getUserAuctions(): Promise<ActionResponse<Auction[]>> {
       .from('auctions')
       .select(`
         *,
+        winner:user_profile(name, email),
         chit_groups!inner(
           id,
           name,
-          members!inner(user_id)
+          group_members!inner(user_id)
         )
       `)
-      .eq('chit_groups.members.user_id', user.id)
+      .eq('chit_groups.group_members.user_id', user.id)
       .order('auction_date', { ascending: false })
 
     if (error) throw error
 
+    // Transform auctions to include winner details
+    const transformedAuctions = auctions.map(auction => ({
+      ...auction,
+      winner_name: auction.winner?.name,
+      winner_email: auction.winner?.email
+    }))
+
     return {
       success: true,
-      data: auctions
+      data: transformedAuctions
     }
   } catch (error) {
     console.error('Error getting user auctions:', error)

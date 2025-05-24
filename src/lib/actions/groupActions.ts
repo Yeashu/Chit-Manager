@@ -65,7 +65,7 @@ export async function createGroup(formData: FormData): Promise<ApiResponse<ChitG
         total_members: totalMembers,
         duration_months: durationMonths,
         created_by: user.id,
-        status: 'pending'
+        status: 'active'
       })
       .select()
       .single()

@@ -60,6 +60,8 @@ export interface Auction {
   status: 'scheduled' | 'open' | 'closed' | 'cancelled';
   winner_id?: string;
   winner_bid?: number;
+  winner_name?: string;
+  winner_email?: string;
   created_at: string;
   updated_at: string;
 }

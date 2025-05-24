@@ -99,16 +99,19 @@ const Calendar: React.FC<CalendarProps> = ({
         {allCells.map((day, index) => (
           <div 
             key={index} 
-            className={`
-              aspect-square flex items-center justify-center rounded-full text-sm transition-colors
-              ${day === selectedDate ? 'bg-green-500 text-white font-bold' : ''}
-              ${day && highlightedDates.includes(day) ? 'bg-green-600/30 text-green-300 ring-1 ring-green-500' : ''}
-              ${day ? 'cursor-pointer hover:bg-gray-600 text-gray-200' : ''}
-              ${!day ? 'text-transparent' : ''}
-            `}
             onClick={() => day && onDateSelect?.(day)}
+            className={`
+              text-center p-2 rounded-md text-sm cursor-pointer
+              ${!day ? 'invisible' : ''}
+              ${day === selectedDate ? 'bg-[#4a5a4a] text-white' : ''}
+              ${highlightedDates.includes(day || 0) ? 'bg-[#3a4a3a] text-green-400' : 'text-gray-300 hover:bg-[#3a4a3a]'}
+              transition-colors duration-200
+            `}
           >
             {day}
+            {highlightedDates.includes(day || 0) && (
+              <div className="w-1 h-1 bg-green-400 rounded-full mx-auto mt-1" />
+            )}
           </div>
         ))}
       </div>

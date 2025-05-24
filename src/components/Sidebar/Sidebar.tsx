@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link';
-import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings, IconLogout, IconBell } from '@tabler/icons-react';
+import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings, IconLogout, IconBell, IconGavel } from '@tabler/icons-react';
 import { useUser } from '@/hooks/useUser';
 import { logout } from '@/app/auth/actions';
 import NotificationBadge from '@/components/NotificationBadge';
@@ -25,6 +25,12 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
       label: 'My Groups', 
       icon: <IconUsers size={20} stroke={1.5} />, 
       href: '/MyGroups' 
+    },
+    { 
+      id: 'auctions', 
+      label: 'Auctions', 
+      icon: <IconGavel size={20} stroke={1.5} />, 
+      href: '/Auctions' 
     },
     { 
       id: 'notifications', 
