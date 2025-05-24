@@ -1,0 +1,52 @@
+Next.js App Router Directory
+==========================
+
+Purpose:
+-------
+Contains all routing and page-level components using Next.js 13+ App Router.
+
+Structure:
+---------
+app/
+  ├── layout.tsx       # Root layout
+  ├── page.tsx        # Home page
+  ├── loading.tsx     # Loading UI
+  ├── error.tsx       # Error UI
+  └── [route]/        # Dynamic routes
+      ├── page.tsx
+      └── layout.tsx
+
+Best Practices:
+-------------
+1. Routing:
+   - Use meaningful route segments
+   - Implement proper loading and error states
+   - Use dynamic routes appropriately
+   - Consider route groups for organization
+
+2. Performance:
+   - Use proper caching strategies
+   - Implement streaming where beneficial
+   - Use proper fetch cache options
+   - Consider parallel routes for optimization
+
+3. Code Quality:
+   - Keep page components focused
+   - Implement proper metadata
+   - Use proper TypeScript types
+   - Follow Next.js conventions for data fetching
+
+4. SEO:
+   - Implement proper metadata
+   - Use semantic HTML
+   - Consider dynamic metadata
+   - Include proper OpenGraph tags
+
+File Naming:
+----------
+- page.tsx - Route UI
+- layout.tsx - Shared layouts
+- loading.tsx - Loading UI
+- error.tsx - Error handling
+- not-found.tsx - 404 pages
+- route.ts - API endpoints

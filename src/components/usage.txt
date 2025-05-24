@@ -1,0 +1,99 @@
+React Components Directory Guidelines
+==================================
+
+Purpose:
+--------
+Store reusable React components used across the application.
+
+Structure:
+---------
+- Each component should have its own directory
+- Use PascalCase for component names and directories
+- Include associated styles, tests, and types in the component directory
+
+Example structure:
+components/
+  ├── Button/
+  │   ├── Button.tsx
+  │   ├── Button.test.tsx
+  │   ├── Button.module.css
+  │   └── index.ts
+  └── Card/
+      └── ...
+
+Best Practices:
+-------------
+1. Component Organization:
+   - Keep components small and focused
+   - Use composition over inheritance
+   - Implement proper prop-types or TypeScript interfaces
+
+2. Code Quality:
+   - Write unit tests for components
+   - Document complex logic with comments
+   - Use meaningful variable and function names
+   - Keep components pure when possible
+   - Implement proper error boundaries
+
+3. Performance:
+   - Use React.memo() for expensive renders
+   - Avoid unnecessary re-renders
+   - Implement proper loading states
+   - Use code splitting for large components
+
+4. Accessibility:
+   - Include proper ARIA labels
+   - Ensure keyboard navigation
+   - Maintain proper heading hierarchy
+   - Test with screen readers
+
+Common Patterns:
+--------------
+- Use compound components for complex UIs
+- Implement controlled vs uncontrolled patterns when needed
+- Follow container/presenter pattern for complex state management
+- Use render props or hooks for shared functionality
+
+Naming Conventions:
+-----------------
+- [Component].tsx - Main component file
+- [Component].test.tsx - Test file
+- [Component].module.css - Styles
+- index.ts - Barrel exports
+
+Styling Guidelines:
+----------------
+1. CSS Modules:
+   - Use CSS Modules for component-specific styles
+   - Keep selectors simple and specific
+   - Use meaningful class names
+   - Avoid global styles unless necessary
+   - Follow BEM naming convention for complex components
+
+2. Tailwind CSS:
+   - Prefer utility classes for simple styles
+   - Create custom utilities for repeated patterns
+   - Use @apply for complex repeated patterns
+   - Follow mobile-first responsive design
+   - Use theme variables for consistency
+
+3. Style Organization:
+   - Group related styles together
+   - Order properties consistently
+   - Use CSS custom properties for theming
+   - Keep media queries organized
+   - Document complex CSS calculations
+
+4. Performance Best Practices:
+   - Minimize nested selectors
+   - Avoid expensive CSS properties
+   - Use hardware acceleration when appropriate
+   - Implement proper CSS containment
+   - Consider CSS-in-JS performance implications
+
+5. Theme Consistency:
+   - Use design tokens for colors, spacing, etc.
+   - Maintain consistent spacing scales
+   - Follow typography system
+   - Use CSS variables for dynamic theming
+   - Document color palette and usage

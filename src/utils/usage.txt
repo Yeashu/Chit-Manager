@@ -1,0 +1,31 @@
+Utilities Directory
+=================
+
+Purpose:
+-------
+Store pure utility functions and helper methods.
+
+Best Practices:
+-------------
+1. Code Quality:
+   - Write pure functions
+   - Include unit tests
+   - Document complex algorithms
+   - Use TypeScript
+   - Keep functions small and focused
+
+2. Organization:
+   - Group related utilities
+   - Use meaningful file names
+   - Export through index files
+   - Document usage examples
+
+Common Utilities:
+--------------
+- Data formatting
+- Validation functions
+- Calculations
+- Date handling
+- String manipulation
+- Type guards
+- Constants and enums
