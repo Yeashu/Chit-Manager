@@ -1,0 +1,10 @@
+This file is a placeholder. In a real implementation, the following avatar images would be included:
+
+/avatars/avatar1.png - Avatar for Sophia Clark
+/avatars/avatar2.png - Avatar for Ethan Miller
+/avatars/avatar3.png - Avatar for Olivia Davis
+/avatars/avatar4.png - Avatar for Noah Wilson
+/avatars/avatar5.png - Avatar for Ava Thompson
+/avatars/avatar6.png - Avatar for Liam Garcia
+
+These would be actual PNG files with profile illustrations as shown in the Members page design.

@@ -1,0 +1,13 @@
+This file is a placeholder. In a real implementation, the following image files would be included:
+
+/patterns/pattern1.png - Wooden wave pattern shown in Community Fund Alpha card
+/patterns/pattern2.png - Framed pattern shown in Neighborhood Savings Circle card
+/patterns/pattern3.png - Abstract line pattern shown in Shared Prosperity Group card
+/patterns/pattern4.png - Brown wave pattern shown in Mutual Aid Collective card
+/patterns/pattern5.png - Framed silhouette shown in Cooperative Savings Initiative card
+/patterns/empty-state.png - Image shown in empty state for My Groups page
+/patterns/coins.png - Coin stack image shown in group details
+/patterns/savings.png - Savings jar image shown in group details
+/patterns/auction.png - Gavel/auction image shown in group details
+
+In a production environment, these would be actual PNG files with transparent backgrounds.
