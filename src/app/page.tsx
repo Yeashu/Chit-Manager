@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import KeyFeatures from "@/components/KeyFeatures";
-import Testimonials from "@/components/Testimonials";
-import Pricing from "@/components/Pricing/Pricing";
+import HowItWorks from "@/components/HowItWorks";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -49,8 +48,7 @@ export default function Home() {
       <main className="pt-16"> {/* Add padding to account for fixed header */}
         <HeroSection />
         <KeyFeatures />
-        <Pricing />
-        <Testimonials />
+        <HowItWorks />
       </main>
       <Footer />
     </div>

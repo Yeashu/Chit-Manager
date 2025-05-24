@@ -13,7 +13,6 @@ const Header = () => (
     <nav className="hidden md:flex gap-8 text-sm font-medium">
       <a href="#features" className="hover:text-[#a3e635] transition-colors">Features</a>
       <a href="#how-it-works" className="hover:text-[#a3e635] transition-colors">How it Works</a>
-      <a href="#pricing" className="hover:text-[#a3e635] transition-colors">Pricing</a>
     </nav>
     <div className="flex gap-2">
       <Link href="/signup" className="bg-[#a3e635] text-[#181f16] font-semibold px-5 py-2 rounded-full hover:bg-[#b7f36b] transition">Sign Up</Link>
