@@ -6,13 +6,13 @@ import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 
 interface GroupDetailProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function GroupDetail({ params }: GroupDetailProps) {
-  const { id } = params;
+  const { id } = React.use(params);
   const [activeTab, setActiveTab] = useState('overview');
 
   // Mock data for the group details
