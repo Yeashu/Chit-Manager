@@ -9,13 +9,15 @@ import { pageAnimations } from '@/utils/animations';
 import { getUserPayments } from '@/lib/actions/paymentActions';
 import { useUser } from '@/hooks/useUser';
 import type { PaymentWithDetails } from '@/types';
+import { createClient } from '@/utils/supabase/client';
 
-type PaymentStatus = 'all' | 'completed' | 'pending' | 'failed' | 'profits';
+type PaymentStatus = 'all' | 'completed' | 'pending' | 'profits';
 
 export default function PaymentsPage() {
   const { user } = useUser();
   const [activeFilter, setActiveFilter] = useState<PaymentStatus>('all');
   const [payments, setPayments] = useState<PaymentWithDetails[]>([]);
+  const [profits, setProfits] = useState<PaymentWithDetails[]>([]);
 
   useEffect(() => {
     if (user?.id) {
@@ -28,6 +30,24 @@ export default function PaymentsPage() {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    async function fetchProfits() {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('type', 'received');
+
+      if (error) {
+        console.error('Error fetching profits:', error);
+      } else {
+        setProfits(data);
+      }
+    }
+
+    fetchProfits();
+  }, []);
 
   const filteredPayments = activeFilter === 'all'
     ? payments
@@ -254,6 +274,40 @@ export default function PaymentsPage() {
                 Next
               </motion.button>
             </div>
+          </div>
+        </motion.div>
+
+        {/* Profits Section - Newly Added */}
+        <motion.div 
+          variants={pageAnimations.container}
+          initial="hidden"
+          animate="show"
+          className="bg-[#232b1c] border border-[#2a3424] rounded-xl p-6 mt-8"
+        >
+          <h2 className="text-xl font-semibold mb-4">
+            Your Profits
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {profits.length > 0 ? (
+              profits.map((profit) => (
+                <div key={profit.id} className="bg-[#2a3424] p-4 rounded-lg border border-[#2a3424] hover:border-[#a3e635]/30 transition-all duration-300">
+                  <p className="text-sm text-[#cbd5c0]">
+                    User ID: <span className="text-white">{profit.user_id}</span>
+                  </p>
+                  <p className="text-sm text-[#cbd5c0]">
+                    Amount: <span className="text-white">${profit.amount}</span>
+                  </p>
+                  <p className="text-sm text-[#cbd5c0]">
+                    Paid At: <span className="text-white">{profit.paid_at ? new Date(profit.paid_at).toLocaleString() : 'N/A'}</span>
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-[#cbd5c0] text-sm">
+                No profits to display.
+              </p>
+            )}
           </div>
         </motion.div>
       </div>

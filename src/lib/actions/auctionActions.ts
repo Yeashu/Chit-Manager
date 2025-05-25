@@ -278,12 +278,12 @@ export async function closeAuction(
     const { data: members } = await supabase
       .from('group_members')
       .select('user_id')
+      .eq('group_id', auction.group_id)
 
     if (!members) {
       return { success: false, error: 'No members found in the group' }
     }
 
-    // Adjust type to match fetched data
     const eligibleMembers = members.filter((m: { user_id: string }) => m.user_id !== winnerId)
     const profitPerMember = eligibleMembers.length > 0 ? profitPool / eligibleMembers.length : 0
 
