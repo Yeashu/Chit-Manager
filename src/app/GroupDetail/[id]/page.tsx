@@ -12,8 +12,10 @@ import { getGroupDetails, updateGroup, deleteGroup } from '@/lib/actions/groupAc
 import { getGroupMembers, removeMemberFromGroup, updateMemberRole, leaveGroup } from '@/lib/actions/memberActions';
 import { getGroupAuctions } from '@/lib/actions/auctionActions';
 import { getGroupPayments } from '@/lib/actions/paymentActions';
+import { createClient } from '@/utils/supabase/client';
 import type { ChitGroupWithCreator, MemberWithUser, Auction, Payment } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 
 interface GroupDetailProps {
   params: Promise<{
@@ -24,6 +26,7 @@ interface GroupDetailProps {
 export default function GroupDetail({ params }: GroupDetailProps) {
   const { id } = React.use(params);
   const router = useRouter();
+  const { user, loading: userLoading } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [groupData, setGroupData] = useState<ChitGroupWithCreator | null>(null);
   const [members, setMembers] = useState<MemberWithUser[]>([]);
@@ -37,6 +40,7 @@ export default function GroupDetail({ params }: GroupDetailProps) {
   const [showBidModal, setShowBidModal] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch group details and members
   useEffect(() => {
@@ -45,18 +49,26 @@ export default function GroupDetail({ params }: GroupDetailProps) {
         setLoading(true);
         setError(null);
 
-        // Fetch group details
-        const groupResponse = await getGroupDetails(id);
+        // Fetch group details and check admin status
+        const [groupResponse, membersResponse] = await Promise.all([
+          getGroupDetails(id),
+          getGroupMembers(id)
+        ]);
+
         if (!groupResponse.data) {
           setError(groupResponse.error || 'Failed to fetch group details');
           return;
         }
         setGroupData(groupResponse.data);
 
-        // Fetch group members
-        const membersResponse = await getGroupMembers(id);
         if (membersResponse.success && membersResponse.data) {
           setMembers(membersResponse.data);
+          
+          // Check if current user is admin
+          if (user) {
+            const currentMember = membersResponse.data.find(m => m.user.id === user.id);
+            setIsAdmin(currentMember?.role === 'admin');
+          }
         }
 
         // Fetch group auctions
@@ -78,8 +90,11 @@ export default function GroupDetail({ params }: GroupDetailProps) {
       }
     };
 
-    fetchData();
-  }, [id]);
+    // Only fetch after user is loaded
+    if (!userLoading) {
+      fetchData();
+    }
+  }, [id, user, userLoading]);
 
   const handleLeaveGroup = async () => {
     if (!confirm('Are you sure you want to leave this group?')) return;
@@ -357,8 +372,12 @@ export default function GroupDetail({ params }: GroupDetailProps) {
               </div>
               
               <div className="flex mt-6 space-x-4">
-                <Button onClick={() => setShowInviteModal(true)}>Invite Members</Button>
-                <Button variant="secondary" onClick={() => setShowAuctionModal(true)}>Schedule Auction</Button>
+                {isAdmin && (
+                  <>
+                    <Button onClick={() => setShowInviteModal(true)}>Invite Members</Button>
+                    <Button variant="secondary" onClick={() => setShowAuctionModal(true)}>Schedule Auction</Button>
+                  </>
+                )}
                 <Button variant="outline" onClick={() => setShowPaymentModal(true)}>Make Payment</Button>
               </div>
               
@@ -379,7 +398,9 @@ export default function GroupDetail({ params }: GroupDetailProps) {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Members ({members.length})</h2>
-                <Button onClick={() => setShowInviteModal(true)}>Invite Member</Button>
+                {isAdmin && (
+                  <Button onClick={() => setShowInviteModal(true)}>Invite Member</Button>
+                )}
               </div>
               
               <div className="bg-[#2a3a2a] rounded-lg p-4">
