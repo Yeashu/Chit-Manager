@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { login } from '@/app/auth/actions';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
-  const message = searchParams.get('message');
+  const message = searchParams?.get('message');
   return (
     <div className="min-h-screen bg-[#181f16] flex items-center justify-center p-4">
       <motion.div 
@@ -117,5 +118,13 @@ export default function LoginPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

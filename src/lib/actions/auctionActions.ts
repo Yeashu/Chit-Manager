@@ -362,12 +362,12 @@ export async function fetchGroupAuctions(
 
     if (error) {
       console.error('Error fetching auctions:', error);
-      return { data: null, error: 'Failed to fetch auctions' };
+      return { success: false, error: 'Failed to fetch auctions' };
     }
 
-    return { data, error: null };
+    return { success: true, data };
   } catch (error) {
     console.error('Error fetching auctions:', error);
-    return { data: null, error: 'Failed to fetch auctions' };
+    return { success: false, error: 'Failed to fetch auctions' };
   }
 }
