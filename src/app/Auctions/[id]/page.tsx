@@ -10,6 +10,7 @@ import { getGroupDetails } from '@/lib/actions/groupActions';
 import { useUser } from '@/hooks/useUser';
 import type { AuctionWithBids, ChitGroupWithCreator } from '@/types';
 import CountdownTimer from '@/components/CountdownTimer';
+import { createClient } from '@/utils/supabase/client'; // adjust import as needed
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +26,7 @@ export default function Page({ params }: PageProps) {
   const [placeBidModalOpen, setPlaceBidModalOpen] = useState(false);
   const [endingAuction, setEndingAuction] = useState(false);
   const [group, setGroup] = useState<ChitGroupWithCreator | null>(null);
+  const [totalMembers, setTotalMembers] = useState<number>(0);
 
   // Fetch auction details
   const loadAuctionDetails = async () => {
@@ -55,6 +57,20 @@ export default function Page({ params }: PageProps) {
   useEffect(() => {
     loadAuctionDetails();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchTotalMembers() {
+      if (!auction?.group_id) return;
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('chit_groups')
+        .select('total_members')
+        .eq('id', auction.group_id)
+        .single();
+      if (data && data.total_members) setTotalMembers(Number(data.total_members));
+    }
+    fetchTotalMembers();
+  }, [auction?.group_id]);
 
   const formatCurrency = (amount: string | number) => {
     return new Intl.NumberFormat('en-US', {
@@ -212,7 +228,9 @@ export default function Page({ params }: PageProps) {
                 </div>
                 <div className="bg-[#1c2c1c] p-4 rounded-lg border border-[#3a4a3a]">
                   <p className="text-[#cbd5c0] text-sm mb-2">Group Contribution</p>
-                  <p className="text-xl font-semibold text-[#a3e635]">{formatCurrency(auction.group_contribution || 0)}</p>
+                  <p className="text-xl font-semibold text-[#a3e635]">
+                    {formatCurrency(Number(auction.group_contribution) * totalMembers)}
+                  </p>
                 </div>
                 <div className="bg-[#1c2c1c] p-4 rounded-lg border border-[#3a4a3a]">
                   <p className="text-[#cbd5c0] text-sm mb-2">Bidding Deadline</p>

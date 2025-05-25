@@ -238,6 +238,92 @@ export async function placeBid(
 }
 
 /**
+ * Helper: Distribute profit among group members (except winner) after auction closes
+ */
+async function distributeProfitAfterAuction(auctionId: string) {
+  const supabase = await createClient();
+
+  // Fetch auction with group info
+  const { data: auction, error: auctionError } = await supabase
+    .from('auctions')
+    .select(`*, chit_groups!auctions_group_id_fkey(monthly_contribution, total_members)`)
+    .eq('id', auctionId)
+    .single();
+
+  if (auctionError || !auction || !auction.group_id || !auction.winner_id || !auction.winner_bid) {
+    console.error('Profit distribution: Invalid auction or missing data');
+    return;
+  }
+
+  // Parse all values as numbers
+  const monthlyContribution = Number(auction.chit_groups.monthly_contribution);
+  const totalMembers = Number(auction.chit_groups.total_members);
+  const winnerBid = Number(auction.winner_bid);
+  const totalContributions = monthlyContribution * totalMembers;
+  const profit = (totalContributions - winnerBid) / totalMembers;
+
+  // Debug log
+  console.log('[Profit Distribution]', {
+    monthlyContribution,
+    totalMembers,
+    winnerBid,
+    totalContributions,
+    profit
+  });
+
+  if (profit <= 0 || totalMembers < 1) {
+    // Nothing to distribute
+    return;
+  }
+
+  // Get all group members (including the winner)
+  const { data: members, error: membersError } = await supabase
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', auction.group_id);
+
+  if (membersError || !members) {
+    console.error('Profit distribution: Could not fetch group members');
+    return;
+  }
+
+  if (members.length === 0) return;
+
+  const share = profit / totalMembers;
+  const now = new Date().toISOString();
+
+  // Insert a profit payment for each member (including the winner)
+  const profitPayments = members.map((member: any) => ({
+    paid_at: now,
+    user_id: member.user_id,
+    group_id: auction.group_id,
+    auction_id: auctionId,
+    amount: share,
+    type: 'payout',
+    status: 'completed',
+  }));
+
+  // Insert a separate payment for the winner's bid
+  const winnerPayment = {
+    paid_at: now,
+    user_id: auction.winner_id,
+    group_id: auction.group_id,
+    auction_id: auctionId,
+    amount: winnerBid,
+    type: 'winner',
+    status: 'completed',
+  };
+
+  const { error: paymentError } = await supabase
+    .from('payments')
+    .insert([...profitPayments, winnerPayment]);
+
+  if (paymentError) {
+    console.error('Profit distribution: Error inserting payments', paymentError);
+  }
+}
+
+/**
  * Close an auction and declare the winner
  */
 export async function closeAuction(
@@ -299,6 +385,9 @@ export async function closeAuction(
 
     revalidatePath(`/GroupDetail/${auction.group_id}`)
     revalidatePath('/Auctions')
+
+    // Distribute profit among group members (except winner)
+    await distributeProfitAfterAuction(auctionId);
 
     return {
       success: true,
