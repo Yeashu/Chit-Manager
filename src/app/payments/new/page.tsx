@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Button from '@/components/Button';
 import { getMyGroups } from '@/lib/actions/groupActions';
 import { fetchGroupAuctions } from '@/lib/actions/auctionActions';
+import { recordPayment } from '@/lib/actions/paymentActions';
 import { useUser } from '@/hooks/useUser';
 import type { ChitGroup, Auction } from '@/types';
 
@@ -135,6 +136,17 @@ export default function NewPaymentPage() {
             const verifyData = await verifyResponse.json();
 
             if (verifyResponse.ok) {
+              // Record successful payment
+              await recordPayment({
+                user_id: user.id,
+                group_id: selectedGroup.id,
+                auction_id: selectedAuction.id,
+                amount: parseFloat(amount),
+                type: 'contribution',
+                status: 'completed',
+                paid_at: new Date().toISOString(),
+              });
+
               alert('Payment successful!');
               router.push('/payments');
             } else {
@@ -153,9 +165,19 @@ export default function NewPaymentPage() {
           color: '#3399cc',
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: async () => {
             setLoading(false);
             setError('Payment process was cancelled');
+            // Record failed payment
+            await recordPayment({
+              user_id: user.id,
+              group_id: selectedGroup.id,
+              auction_id: selectedAuction.id,
+              amount: parseFloat(amount),
+              type: 'contribution',
+              status: 'failed',
+              paid_at: new Date().toISOString(),
+            });
           },
         },
       });
@@ -164,6 +186,16 @@ export default function NewPaymentPage() {
     } catch (err: any) {
       console.error('Error initiating payment:', err);
       setError(err.message || 'An unexpected error occurred');
+      // Record failed payment
+      await recordPayment({
+        user_id: user.id,
+        group_id: selectedGroup.id,
+        auction_id: selectedAuction.id,
+        amount: parseFloat(amount),
+        type: 'contribution',
+        status: 'failed',
+        paid_at: new Date().toISOString(),
+      });
     } finally {
       setLoading(false);
     }
