@@ -1,72 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Link from 'next/link';
 import { pageAnimations, hoverAnimations } from '@/utils/animations';
+import { getUserPayments } from '@/lib/actions/paymentActions';
+import { useUser } from '@/hooks/useUser';
+import type { PaymentWithDetails } from '@/types';
 
 type PaymentStatus = 'all' | 'completed' | 'pending' | 'failed';
 
-interface Payment {
-  id: string;
-  group: string;
-  amount: number;
-  date: string;
-  status: 'completed' | 'pending' | 'failed';
-  recipient: string;
-}
-
 export default function PaymentsPage() {
-  // Mock payment data
+  const { user } = useUser();
   const [activeFilter, setActiveFilter] = useState<PaymentStatus>('all');
-  const [payments, setPayments] = useState<Payment[]>([
-    {
-      id: 'PMT-1001',
-      group: 'Community Fund Alpha',
-      amount: 200,
-      date: '2023-06-15',
-      status: 'completed',
-      recipient: 'Shared Prosperity Group'
-    },
-    {
-      id: 'PMT-1002',
-      group: 'Neighborhood Savings',
-      amount: 150,
-      date: '2023-06-20',
-      status: 'pending',
-      recipient: 'Local Community Fund'
-    },
-    {
-      id: 'PMT-1003',
-      group: 'Family Trust',
-      amount: 300,
-      date: '2023-06-10',
-      status: 'completed',
-      recipient: 'Family Group'
-    },
-    {
-      id: 'PMT-1004',
-      group: 'Tech Savers',
-      amount: 250,
-      date: '2023-06-05',
-      status: 'failed',
-      recipient: 'Tech Community Fund'
-    },
-    {
-      id: 'PMT-1005',
-      group: 'Future Builders',
-      amount: 175,
-      date: '2023-05-28',
-      status: 'completed',
-      recipient: 'Builders Collective'
+  const [payments, setPayments] = useState<PaymentWithDetails[]>([]);
+
+  useEffect(() => {
+    if (user?.id) {
+      getUserPayments(user.id).then((res) => {
+        if (res.success && res.data) {
+          setPayments(res.data);
+        } else {
+          setPayments([]);
+        }
+      });
     }
-  ]);
+  }, [user]);
 
   const filteredPayments = activeFilter === 'all' 
     ? payments 
     : payments.filter(payment => payment.status === activeFilter);
+
+  // Calculate stats from real data
+  const totalPaid = payments.filter(p => p.status === 'completed').reduce((sum, p) => sum + Number(p.amount), 0);
+  const pendingPayments = payments.filter(p => p.status === 'pending');
+  const failedPayments = payments.filter(p => p.status === 'failed');
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -105,7 +75,7 @@ export default function PaymentsPage() {
             <p className="text-[#cbd5c0]">View and manage all your payment transactions</p>
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-            <Button href="/make-payment">
+            <Button href="/payments/new">
               Make New Payment
             </Button>
           </motion.div>
@@ -119,24 +89,24 @@ export default function PaymentsPage() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
         >
           {[
-            { 
+            {
               title: 'Total Paid', 
-              value: '$1,075',
-              change: '+12.5%',
+              value: `$${totalPaid}`,
+              change: `${payments.length > 0 ? ((totalPaid / payments.reduce((sum, p) => sum + Number(p.amount), 0)) * 100).toFixed(1) : '0'}%`,
               isPositive: true,
               icon: '💸'
             },
             { 
               title: 'Pending Payments', 
-              value: '$150',
-              change: '1 pending',
+              value: `$${pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
+              change: `${pendingPayments.length} pending`,
               isPositive: false,
               icon: '⏳'
             },
             { 
               title: 'Failed Payments', 
-              value: '$250',
-              change: '1 failed',
+              value: `$${failedPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
+              change: `${failedPayments.length} failed`,
               isPositive: false,
               icon: '❌'
             }
@@ -150,9 +120,7 @@ export default function PaymentsPage() {
                 <div>
                   <p className="text-[#cbd5c0] text-sm">{stat.title}</p>
                   <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <p className={`text-sm mt-2 ${stat.isPositive ? 'text-[#a3e635]' : 'text-[#f87171]'}`}>
-                    {stat.change}
-                  </p>
+                  <p className={`text-sm mt-2 ${stat.isPositive ? 'text-[#a3e635]' : 'text-[#f87171]'}`}>{stat.change}</p>
                 </div>
                 <div className="text-3xl">
                   {stat.icon}
@@ -222,15 +190,15 @@ export default function PaymentsPage() {
                           {payment.id}
                         </Link>
                       </td>
-                      <td className="p-4 text-sm">{payment.group}</td>
-                      <td className="p-4 text-sm">{payment.recipient}</td>
+                      <td className="p-4 text-sm">{payment.group_name || '-'}</td>
+                      <td className="p-4 text-sm">{payment.user_name || payment.user_email || '-'}</td>
                       <td className="p-4 text-sm text-right">${payment.amount}</td>
                       <td className="p-4 text-sm text-[#cbd5c0]">
-                        {new Date(payment.date).toLocaleDateString('en-US', {
+                        {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
-                        })}
+                        }) : '-'}
                       </td>
                       <td className="p-4 text-right">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>

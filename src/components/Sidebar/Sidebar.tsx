@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link';
-import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings, IconLogout } from '@tabler/icons-react';
+import { IconHome, IconUsers, IconWallet, IconFileText, IconSettings, IconLogout, IconBell, IconGavel } from '@tabler/icons-react';
 import { useUser } from '@/hooks/useUser';
 import { logout } from '@/app/auth/actions';
+import NotificationBadge from '@/components/NotificationBadge';
 
 interface SidebarProps {
-  activeItem?: 'dashboard' | 'groups' | 'payments' | 'reports' | 'settings' | 'members' | 'auctions';
+  activeItem?: 'dashboard' | 'groups' | 'payments' | 'reports' | 'settings' | 'members' | 'auctions' | 'notifications';
   siteName?: string;
 }
 
@@ -24,6 +25,23 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
       label: 'My Groups', 
       icon: <IconUsers size={20} stroke={1.5} />, 
       href: '/MyGroups' 
+    },
+    { 
+      id: 'auctions', 
+      label: 'Auctions', 
+      icon: <IconGavel size={20} stroke={1.5} />, 
+      href: '/Auctions' 
+    },
+    { 
+      id: 'notifications', 
+      label: 'Notifications', 
+      icon: (
+        <div className="relative">
+          <IconBell size={20} stroke={1.5} />
+          <NotificationBadge />
+        </div>
+      ), 
+      href: '/notifications' 
     },
     { 
       id: 'payments', 
@@ -73,7 +91,7 @@ const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarP
         <div className="border-t border-[#2a3a2a] pt-4 mt-4">
           <div className="mb-3 px-2">
             <div className="text-sm font-medium text-white truncate">
-              {user.user_metadata?.full_name || user.email}
+              {user.user_metadata?.name || user.email}
             </div>
             <div className="text-xs text-gray-400 truncate">
               {user.email}

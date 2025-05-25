@@ -42,11 +42,11 @@ export default function SignupPage() {
               transition={{ delay: 0.1 }}
             >
               <label htmlFor="name" className="block text-sm font-medium text-[#cbd5c0] mb-1">
-                Full Name
+                Name
               </label>
               <input
                 id="name"
-                name="full_name"
+                name="name"
                 type="text"
                 required
                 className="w-full px-4 py-3 bg-[#1a2318] border border-[#2a3424] rounded-lg text-white placeholder-[#4a5a46] focus:outline-none focus:ring-2 focus:ring-[#a3e635]/50 focus:border-transparent transition"

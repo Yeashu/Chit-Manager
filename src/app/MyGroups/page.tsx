@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import Link from 'next/link';
 import { pageAnimations, hoverAnimations } from '@/utils/animations';
+import { getMyGroups } from '@/lib/actions/groupActions';
+import type { ChitGroup } from '@/types';
 
 const filterOptions = [
   { id: 'active', label: 'Active' },
@@ -14,70 +16,56 @@ const filterOptions = [
   { id: 'all', label: 'All' },
 ];
 
-// Mock data for groups
-const mockGroups = [
-  {
-    id: '1',
-    name: 'Community Fund Alpha',
-    memberCount: 12,
-    nextAuctionDate: '2024-07-15',
-    imagePattern: 'pattern1' as const,
-  },
-  {
-    id: '2',
-    name: 'Neighborhood Savings Circle',
-    memberCount: 8,
-    nextAuctionDate: '2024-08-01',
-    imagePattern: 'pattern2' as const,
-  },
-  {
-    id: '3',
-    name: 'Shared Prosperity Group',
-    memberCount: 15,
-    nextAuctionDate: '2024-07-20',
-    imagePattern: 'pattern3' as const,
-  },
-  {
-    id: '4',
-    name: 'Mutual Aid Collective',
-    memberCount: 10,
-    nextAuctionDate: '2024-07-25',
-    imagePattern: 'pattern4' as const,
-  },
-  {
-    id: '5',
-    name: 'Cooperative Savings Initiative',
-    memberCount: 14,
-    nextAuctionDate: '2024-08-10',
-    imagePattern: 'pattern5' as const,
-  },
-  {
-    id: '6',
-    name: 'Community Investment Pool',
-    memberCount: 9,
-    nextAuctionDate: '2024-07-30',
-    imagePattern: 'pattern1' as const,
-  },
-];
-
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('active');
+  const [groups, setGroups] = useState<ChitGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const result = await getMyGroups();
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setGroups(result.data || []);
+        }
+      } catch (err) {
+        setError('Failed to fetch groups');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchGroups();
+  }, []);
 
   // Filter groups based on search query and active filter
-  const filteredGroups = mockGroups.filter((group) => {
+  const filteredGroups = groups.filter((group) => {
     const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeFilter === 'all') return matchesSearch;
     
-    // In a real app, you would filter by active/completed status
-    // This is just a mock implementation
-    const isActive = ['1', '2', '3', '4', '5', '6'].includes(group.id);
-    const isCompleted = !isActive;
-    
+    // Filter by status
     return matchesSearch && 
-      ((activeFilter === 'active' && isActive) || 
-       (activeFilter === 'completed' && isCompleted));
+      ((activeFilter === 'active' && ['pending', 'active'].includes(group.status)) || 
+       (activeFilter === 'completed' && ['completed', 'cancelled'].includes(group.status)));
   });
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-[#181f16] text-white font-[family-name:var(--font-geist-sans)]">
+        <Sidebar activeItem="groups" />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#a3e635] mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading your groups...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#181f16] text-white font-[family-name:var(--font-geist-sans)] overflow-hidden">
@@ -106,6 +94,17 @@ export default function MyGroups() {
             <Button href="/CreateGroup">Create Group</Button>
           </motion.div>
         </motion.div>
+        
+        {/* Error Display */}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
+          >
+            <p className="text-red-400">{error}</p>
+          </motion.div>
+        )}
         
         {/* Search and Filter */}
         <motion.div 
@@ -188,18 +187,31 @@ export default function MyGroups() {
                           <h3 className="font-semibold text-lg mb-2 group-hover:text-[#a3e635] transition-colors">
                             {group.name}
                           </h3>
-                          <div className="mt-4 pt-4 border-t border-[#2a3424] text-sm text-[#cbd5c0]">
+                          {group.description && (
+                            <p className="text-sm text-[#cbd5c0] mb-3 line-clamp-2">
+                              {group.description}
+                            </p>
+                          )}
+                          <div className="mt-auto pt-4 border-t border-[#2a3424] text-sm text-[#cbd5c0]">
                             <div className="flex items-center justify-between mb-2">
-                              <span>Members</span>
-                              <span className="font-medium">{group.memberCount}</span>
+                              <span>Total Members</span>
+                              <span className="font-medium">{group.total_members}</span>
+                            </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span>Monthly Amount</span>
+                              <span className="font-medium text-[#a3e635]">
+                                ${group.monthly_contribution}
+                              </span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span>Next Auction</span>
-                              <span className="font-medium text-[#a3e635]">
-                                {new Date(group.nextAuctionDate).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
+                              <span>Status</span>
+                              <span className={`font-medium capitalize px-2 py-1 rounded-full text-xs ${
+                                group.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                group.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                                group.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
+                                'bg-red-500/20 text-red-400'
+                              }`}>
+                                {group.status}
                               </span>
                             </div>
                           </div>
