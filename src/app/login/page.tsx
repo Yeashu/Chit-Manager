@@ -25,7 +25,7 @@ function LoginForm() {
                   <circle cx="12" cy="12" r="10" fill="#a3e635" />
                 </svg>
               </span>
-              <span className="text-xl font-bold">FundEase</span>
+              <span className="text-xl font-bold">TrustChit</span>
             </Link>
             <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
             <p className="text-[#cbd5c0] text-sm">Sign in to your account to continue</p>

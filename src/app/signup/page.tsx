@@ -25,7 +25,7 @@ function SignupForm() {
                   <circle cx="12" cy="12" r="10" fill="#a3e635" />
                 </svg>
               </span>
-              <span className="text-xl font-bold">FundEase</span>
+              <span className="text-xl font-bold">TrustChit</span>
             </Link>
             <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
             <p className="text-[#cbd5c0] text-sm">Join thousands of users managing their chit funds with ease</p>

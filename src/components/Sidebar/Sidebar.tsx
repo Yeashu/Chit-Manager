@@ -11,7 +11,7 @@ interface SidebarProps {
   siteName?: string;
 }
 
-const Sidebar = ({ activeItem = 'dashboard', siteName = 'Chit Funds' }: SidebarProps) => {
+const Sidebar = ({ activeItem = 'dashboard', siteName = 'TrustChit' }: SidebarProps) => {
   const { user, loading } = useUser();
   const menuItems = [
     { 

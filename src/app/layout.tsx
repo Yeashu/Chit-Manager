@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FundEase | Secure, Transparent, and Easy Chit Fund Management",
-  description: "FundEase provides a modern platform for managing chit funds with enhanced security, complete transparency, and an intuitive user experience.",
+  title: "TrustChit | Secure, Transparent, and Easy Chit Fund Management",
+  description: "TrustChit provides a modern platform for managing chit funds with enhanced security, complete transparency, and an intuitive user experience.",
 };
 
 export default function RootLayout({
