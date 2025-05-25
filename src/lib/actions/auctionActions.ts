@@ -43,7 +43,7 @@ export async function createAuction(
         round_number: formData.round_number,
         auction_date: formData.auction_date,
         deadline: formData.deadline,
-        status: 'scheduled',
+        status: 'open',
         winner_id: group.created_by, // Set group admin as default winner
         winner_bid: '0' // Default bid amount for admin
       })

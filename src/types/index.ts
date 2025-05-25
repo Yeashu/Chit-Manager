@@ -80,6 +80,9 @@ export interface BidWithBidder extends Bid {
 
 export interface AuctionWithBids extends Auction {
   bids: BidWithBidder[];
+  group_name?: string;
+  group_contribution?: string;
+  group_total_members?: number;
 }
 
 export interface Payment {

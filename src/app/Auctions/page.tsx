@@ -9,6 +9,7 @@ import Button from '@/components/Button';
 import PlaceBidModal from '@/components/PlaceBidModal';
 import { getUserAuctions, getAuctionDetails } from '@/lib/actions/auctionActions';
 import type { Auction } from '@/types';
+import { useRouter } from 'next/navigation';
 
 type FilterType = 'all' | 'scheduled' | 'open' | 'closed' | 'cancelled';
 
@@ -21,6 +22,7 @@ const filterOptions = [
 ];
 
 export default function Auctions() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [selectedDate, setSelectedDate] = useState<number | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<{ month: number; year: number } | undefined>();
@@ -185,6 +187,12 @@ export default function Auctions() {
     loadAuctions(); // Refresh auctions
   };
 
+  const handleAuctionClick = (auction: Auction) => {
+    if (auction.status === 'open') {
+      router.push(`/Auctions/${auction.id}`);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -264,7 +272,7 @@ export default function Auctions() {
                         </tr>
                       ) : (
                         filteredAuctions.map((auction) => (
-                          <tr key={auction.id} className="hover:bg-[#1c2c1c]">
+                          <tr key={auction.id} className="hover:bg-[#1c2c1c]" onClick={() => handleAuctionClick(auction)}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                               Round {auction.round_number}
                             </td>
