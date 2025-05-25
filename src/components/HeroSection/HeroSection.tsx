@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const HeroSection = () => (
   <section className="relative min-h-[80vh] flex items-center justify-center px-4 md:px-8 overflow-hidden">
@@ -57,18 +58,19 @@ const HeroSection = () => (
           
           <div className="relative z-10 bg-gradient-to-br from-[#232b1c] to-[#1a2318] rounded-3xl p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_80px_rgba(163,230,53,0.15)]">
             <div className="relative aspect-video rounded-2xl overflow-hidden scale-110 origin-center">
-              <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center overflow-hidden">
-                <img 
-                  src="/finance-dashboard-preview.png" 
-                  alt="Finance Dashboard Preview" 
-                  className="w-full h-full object-cover opacity-95 hover:opacity-100 transition-opacity duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null;
-                    target.src = 'https://images.unsplash.com/photo-1554224155-3a58922a22c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
-                  }}
-                />
-              </div>
+                <div className="w-full h-full bg-gradient-to-br from-[#2a3424] to-[#1a2318] flex items-center justify-center overflow-hidden">
+                  <Image 
+                    src="/finance-dashboard-preview.png" 
+                    alt="Finance Dashboard Preview" 
+                    fill
+                    className="object-cover opacity-95 hover:opacity-100 transition-opacity duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = 'https://images.unsplash.com/photo-1554224155-3a58922a22c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
+                    }}
+                  />
+                </div>
             </div>
             
             {/* Enhanced floating elements with bigger scale */}
