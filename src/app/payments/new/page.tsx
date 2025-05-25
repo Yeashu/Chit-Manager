@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Button from '@/components/Button';
-import { recordPayment } from '@/lib/actions/paymentActions';
 import { getMyGroups } from '@/lib/actions/groupActions';
 import { fetchGroupAuctions } from '@/lib/actions/auctionActions';
 import { useUser } from '@/hooks/useUser';
@@ -50,6 +49,22 @@ export default function NewPaymentPage() {
     }
   };
 
+  const loadRazorpayScript = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (typeof window.Razorpay !== 'undefined') {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePayment = async () => {
     if (!user?.id) {
       setError('User not authenticated');
@@ -75,25 +90,80 @@ export default function NewPaymentPage() {
     setError('');
 
     try {
-      const response = await recordPayment({
-        user_id: user.id,
-        group_id: selectedGroup.id,
-        auction_id: selectedAuction.id,
-        amount: parseFloat(amount),
-        type: 'contribution',
-        status: 'completed',
-        paid_at: new Date().toISOString(),
+      // Create Razorpay order
+      const orderResponse = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          currency: 'INR',
+          receipt: `receipt_${Date.now()}`,
+          notes: {
+            user_id: user.id,
+            group_id: selectedGroup.id,
+            auction_id: selectedAuction.id,
+          },
+        }),
       });
 
-      if (response.success) {
-        alert(response.message || 'Payment successful!');
-        router.push('/payments');
-      } else {
-        setError(response.error || 'Payment failed');
+      const orderData = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        throw new Error(orderData.error || 'Failed to create order');
       }
-    } catch (err) {
-      console.error('Error making payment:', err);
-      setError('An unexpected error occurred');
+
+      // Ensure Razorpay script is loaded
+      await loadRazorpayScript();
+
+      // Initiate Razorpay payment
+      const razorpay = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Chit Manager',
+        description: `Payment for ${selectedGroup.name}`,
+        order_id: orderData.id,
+        handler: async (response) => {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyResponse.ok) {
+              alert('Payment successful!');
+              router.push('/payments');
+            } else {
+              throw new Error(verifyData.error || 'Payment verification failed');
+            }
+          } catch (err) {
+            console.error('Payment verification error:', err);
+            setError('Payment verification failed');
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: '#3399cc',
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+            setError('Payment process was cancelled');
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch (err: any) {
+      console.error('Error initiating payment:', err);
+      setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
