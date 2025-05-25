@@ -91,7 +91,7 @@ export interface Payment {
   group_id: string;
   auction_id?: string;
   amount: number;
-  type: 'contribution' | 'payout';
+  type: 'contribution' | 'payout' | 'received';
   status: 'pending' | 'completed' | 'failed';
   paid_at?: string;
   created_at: string;
@@ -167,7 +167,7 @@ export interface RecordPaymentFormData {
   group_id: string;
   auction_id?: string;
   amount: number;
-  type: 'contribution' | 'payout';
+  type: 'contribution' | 'payout' | 'received';
   status: 'pending' | 'completed' | 'failed';
   paid_at?: string;
 }
