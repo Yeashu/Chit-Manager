@@ -20,18 +20,31 @@ export async function createAuction(
   try {
     const supabase = await createClient()
     
-    // Validate that the group exists and user has permission
-    const { data: group } = await supabase
-      .from('chit_groups')
-      .select('id, status, created_by')
-      .eq('id', groupId)
-      .single()
-      
-    if (!group) {
-      return { success: false, error: 'Group not found' }
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { success: false, error: 'Authentication required' }
     }
 
-    if (group.status !== 'active') {
+    // Validate that the group exists and user has admin permission
+    const { data: groupData } = await supabase
+      .from('chit_groups')
+      .select(`
+        id, 
+        status, 
+        created_by,
+        group_members!inner(role)
+      `)
+      .eq('id', groupId)
+      .eq('group_members.user_id', user.id)
+      .eq('group_members.role', 'admin')
+      .single()
+      
+    if (!groupData) {
+      return { success: false, error: 'Group not found or you do not have admin permissions' }
+    }
+
+    if (groupData.status !== 'active') {
       return { success: false, error: 'Group must be active to create auctions' }
     }
 
@@ -44,7 +57,7 @@ export async function createAuction(
         auction_date: formData.auction_date,
         deadline: formData.deadline,
         status: 'open',
-        winner_id: group.created_by, // Set group admin as default winner
+        winner_id: groupData.created_by, // Set group admin as default winner
         winner_bid: '0' // Default bid amount for admin
       })
       .select()
@@ -353,21 +366,22 @@ export async function fetchGroupAuctions(
 ): Promise<ActionResponse<Auction[]>> {
   try {
     const supabase = await createClient();
-
-    const { data, error } = await supabase
+    
+    // Get all auctions for a specific group
+    const { data: auctions, error } = await supabase
       .from('auctions')
       .select('*')
       .eq('group_id', groupId)
-      .order('round_number', { ascending: true });
+      .order('auction_date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching auctions:', error);
-      return { data: null, error: 'Failed to fetch auctions' };
-    }
+    if (error) throw error;
 
-    return { data, error: null };
+    return {
+      success: true,
+      data: auctions || []
+    };
   } catch (error) {
     console.error('Error fetching auctions:', error);
-    return { data: null, error: 'Failed to fetch auctions' };
+    return { success: false, error: 'Failed to fetch auctions' };
   }
 }
