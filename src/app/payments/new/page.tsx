@@ -124,7 +124,7 @@ export default function NewPaymentPage() {
         name: 'Chit Manager',
         description: `Payment for ${selectedGroup.name}`,
         order_id: orderData.id,
-        handler: async (response) => {
+        handler: async (response: any) => {
           try {
             // Verify payment
             const verifyResponse = await fetch('/api/verify-payment', {
@@ -158,8 +158,8 @@ export default function NewPaymentPage() {
           }
         },
         prefill: {
-          name: user.name,
-          email: user.email,
+          name: (user as any).name || user.email?.split('@')[0] || '',
+          email: user.email || '',
         },
         theme: {
           color: '#3399cc',
@@ -241,7 +241,7 @@ export default function NewPaymentPage() {
                 </option>
                 {auctions.map((auction) => (
                   <option key={auction.id} value={auction.id}>
-                    Round {auction.round_number} (Ends: {new Date(auction.end_date).toLocaleDateString()})
+                    Round {auction.round_number} (Ends: {new Date(auction.deadline).toLocaleDateString()})
                   </option>
                 ))}
               </select>

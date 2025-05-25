@@ -12,18 +12,11 @@ import type { AuctionWithBids, ChitGroupWithCreator } from '@/types';
 import CountdownTimer from '@/components/CountdownTimer';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function Page({ params }: PageProps) {
-  // Unwrap params for future Next.js compatibility
-  let id: string;
-  if (typeof (params as unknown as { then?: unknown }).then === 'function') {
-    // @ts-expect-error: React.use() for future Next.js param unwrapping
-    id = React.use(params).id;
-  } else {
-    id = params.id;
-  }
+  const { id } = React.use(params);
   const router = useRouter();
   const { user } = useUser();
   const [auction, setAuction] = useState<AuctionWithBids | null>(null);
@@ -61,7 +54,6 @@ export default function Page({ params }: PageProps) {
 
   useEffect(() => {
     loadAuctionDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const formatCurrency = (amount: string | number) => {
@@ -124,7 +116,6 @@ export default function Page({ params }: PageProps) {
     if (isAuctionOpen && isDeadlinePassed) {
       handleEndAuction();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuctionOpen, isDeadlinePassed]);
 
   if (loading) {

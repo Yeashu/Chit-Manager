@@ -69,7 +69,7 @@ export async function inviteMemberToGroup(
     revalidatePath(`/GroupDetail/${groupId}`);
     return { 
       success: true, 
-      data: { invitationId: notificationRes.data?.id },
+      data: { invitationId: notificationRes.data?.id || 'unknown' },
       message: 'Invitation sent successfully'
     };
   } catch (error) {
