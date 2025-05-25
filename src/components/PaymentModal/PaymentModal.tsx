@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@/components/Button';
-import { recordPayment } from '@/lib/actions/paymentActions';
+import { recordPayment, getGroupPayments } from '@/lib/actions/paymentActions';
 import type { RecordPaymentFormData } from '@/types';
-import type { Payment } from '@/types';
+import type { PaymentWithDetails } from '@/types';
+import { useUser } from '@/hooks/useUser';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,19 +23,37 @@ export default function PaymentModal({
   monthlyContribution,
   onPaymentMade 
 }: PaymentModalProps) {
+  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [payments, setPayments] = useState<PaymentWithDetails[]>([]);
+
+  // Fetch group payments when modal opens
+  useEffect(() => {
+    if (isOpen && groupId) {
+      getGroupPayments(groupId).then((res) => {
+        if (res.success && res.data) {
+          setPayments(res.data);
+        } else {
+          setPayments([]);
+        }
+      });
+    }
+  }, [isOpen, groupId]);
 
   const handlePayment = async () => {
     setLoading(true);
     setError('');
 
     try {
-      // For now, we'll need to get the current user ID
-      // In a real implementation, you might pass this as a prop or get it from context
+      if (!user?.id) {
+        setError('User not authenticated');
+        setLoading(false);
+        return;
+      }
       const paymentData: RecordPaymentFormData = {
-        user_id: '', // This should be obtained from authentication context
+        user_id: user.id, // Now linked to current user
         group_id: groupId,
         amount: monthlyContribution,
         type: 'contribution',
@@ -195,6 +214,36 @@ export default function PaymentModal({
                   )}
                 </Button>
               </div>
+
+              {payments.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold text-white mb-2">Recent Payments</h3>
+                  <div className="bg-[#1c2c1c] rounded-lg p-4 border border-[#3a4a3a] max-h-48 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr>
+                          <th className="text-left text-gray-400 font-medium pb-2">User</th>
+                          <th className="text-left text-gray-400 font-medium pb-2">Amount</th>
+                          <th className="text-left text-gray-400 font-medium pb-2">Date</th>
+                          <th className="text-left text-gray-400 font-medium pb-2">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.map((p) => (
+                          <tr key={p.id}>
+                            <td className="py-1 text-white">{p.user_name || p.user_email || 'User'}</td>
+                            <td className="py-1 text-[#a3e635]">${p.amount}</td>
+                            <td className="py-1 text-gray-300">{p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '-'}</td>
+                            <td className="py-1">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${p.status === 'completed' ? 'bg-green-700 text-green-200' : p.status === 'pending' ? 'bg-yellow-700 text-yellow-200' : 'bg-red-700 text-red-200'}`}>{p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
