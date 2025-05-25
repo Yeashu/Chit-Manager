@@ -15,6 +15,7 @@ import { getGroupPayments } from '@/lib/actions/paymentActions';
 import { createClient } from '@/utils/supabase/client';
 import type { ChitGroupWithCreator, MemberWithUser, Auction, Payment } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 
 interface GroupDetailProps {
   params: Promise<{
@@ -25,6 +26,7 @@ interface GroupDetailProps {
 export default function GroupDetail({ params }: GroupDetailProps) {
   const { id } = React.use(params);
   const router = useRouter();
+  const { user, loading: userLoading } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [groupData, setGroupData] = useState<ChitGroupWithCreator | null>(null);
   const [members, setMembers] = useState<MemberWithUser[]>([]);
@@ -63,7 +65,6 @@ export default function GroupDetail({ params }: GroupDetailProps) {
           setMembers(membersResponse.data);
           
           // Check if current user is admin
-          const { data: { user } } = await createClient().auth.getUser();
           if (user) {
             const currentMember = membersResponse.data.find(m => m.user.id === user.id);
             setIsAdmin(currentMember?.role === 'admin');
@@ -89,8 +90,11 @@ export default function GroupDetail({ params }: GroupDetailProps) {
       }
     };
 
-    fetchData();
-  }, [id]);
+    // Only fetch after user is loaded
+    if (!userLoading) {
+      fetchData();
+    }
+  }, [id, user, userLoading]);
 
   const handleLeaveGroup = async () => {
     if (!confirm('Are you sure you want to leave this group?')) return;
