@@ -7,7 +7,7 @@ const Header = () => (
         <span className="bg-[#232b1c] rounded-full w-6 h-6 flex items-center justify-center">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#a3e635" /></svg>
         </span>
-        FundEase
+        TrustChit
       </span>
     </div>
     <nav className="hidden md:flex gap-8 text-sm font-medium">

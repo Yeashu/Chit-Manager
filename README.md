@@ -1,8 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrustChit
+
+**TrustChit** is a modern, secure, and transparent platform for managing chit funds online. Built with Next.js, Supabase, and a robust React component architecture, TrustChit empowers users to create, manage, and participate in chit fund groups with ease and confidence.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [How It Works](#how-it-works)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
+
+TrustChit digitizes the traditional chit fund system, making it accessible, efficient, and trustworthy for everyone. Whether you want to start a new group, join existing ones, participate in auctions, or track payments, TrustChit provides a seamless experience with real-time analytics and bank-level security.
+
+---
+
+## Key Features
+
+- **Group Creation & Management:** Set up chit fund groups with custom rules, invite members, and manage group details.
+- **Secure Payments:** Make and track monthly contributions with automated reminders and transparent records.
+- **Auction System:** Participate in monthly auctions with real-time bidding and fair winner selection.
+- **Analytics & Reports:** Monitor group progress, payment histories, and receive automated reports.
+- **Notifications:** Stay updated with real-time alerts for auctions, payments, and group activities.
+- **Enhanced Security:** Multi-factor authentication and encryption for all transactions and data.
+- **Modern UI:** Responsive, accessible, and intuitive interface for all user roles.
+
+---
+
+## How It Works
+
+1. **Create Your Group:** Set up a chit fund group with your own rules and invite trusted members.
+2. **Make Contributions:** Members pay their monthly share securely through TrustChit.
+3. **Participate in Auctions:** Bid for the pooled fund in transparent, real-time auctions.
+4. **Track & Withdraw:** Winners receive the fund, and all members can track group progress and payments.
+
+---
+
+## Screenshots
+
+> _Add screenshots or GIFs here to showcase TrustChit’s UI and features._
+
+---
+
+## Tech Stack
+
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS, Framer Motion
+- **Backend:** Supabase (PostgreSQL, Auth, Realtime)
+- **Payments:** Razorpay integration
+- **Other:** ESLint, PostCSS, modern component and hooks architecture
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js (v18+)
+- npm, yarn, pnpm, or bun
+- Supabase project (see `.env.example` for required keys)
+- Razorpay account for payment integration
+
+### Installation
+
+```bash
+git clone https://github.com/your-org/trustchit.git
+cd trustchit
+npm install
+# or
+yarn install
+```
+
+### Environment Setup
+
+Copy `.env.example` to `.env.local` and fill in your Supabase and Razorpay credentials.
+
+### Running Locally
 
 ```bash
 npm run dev
@@ -14,23 +93,36 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to use TrustChit.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+- `src/app/` – Next.js app routes (Dashboard, Groups, Auctions, Payments, etc.)
+- `src/components/` – Reusable React components (Button, Sidebar, Modals, etc.)
+- `src/lib/` – Database and third-party integrations (Supabase, payment actions)
+- `src/types/` – TypeScript types and interfaces
+- `src/hooks/` – Custom React hooks
+- `public/` – Static assets
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+We welcome contributions! Please:
 
-## Deploy on Vercel
+1. Fork the repository and create your branch (`git checkout -b feature/your-feature`).
+2. Follow the code style and best practices outlined in the `/usage.txt` files.
+3. Write clear commit messages and document your code.
+4. Submit a pull request with a detailed description.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+**TrustChit** – Secure, Transparent, and Effortless Chit Fund Management.
