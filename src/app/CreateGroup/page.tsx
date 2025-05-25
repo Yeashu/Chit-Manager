@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 
 export default function CreateGroup() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
   const [groupName, setGroupName] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('');
@@ -22,7 +21,7 @@ export default function CreateGroup() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError('');
-    
+
     try {
       const formData = new FormData();
       formData.append('name', groupName);
@@ -31,28 +30,20 @@ export default function CreateGroup() {
       formData.append('total_members', totalMembers);
       formData.append('duration_months', useCustomDuration ? customDuration : duration);
 
-      const result = await createGroup(formData);
-      
-      if (result.error) {
-        setError(result.error);
+      const response = await createGroup(formData) as { error?: string; data?: { id: string } };      
+      if (response.error) {
+        setError(response.error);
+      } else if (response.data) {
+        router.push(`/GroupDetail/${response.data.id}`);
       } else {
-        // Success - redirect to group details
-        router.push(`/GroupDetail/${result.data?.id}`);
+        setError('Failed to create group');
       }
     } catch (err) {
+      console.error('Error creating group:', err);
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleNext = () => {
-    // In a real app, you would validate the fields before proceeding
-    setCurrentStep(currentStep + 1);
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep(currentStep - 1);
   };
 
   return (
@@ -69,17 +60,13 @@ export default function CreateGroup() {
         )}
         
         <div className="mb-8">
-          <div className="text-sm text-gray-400 mb-2">Step {currentStep} of 3</div>
+          <div className="text-sm text-gray-400 mb-2">Create New Group</div>
           <div className="w-full bg-[#2a3a2a] h-2 rounded-full overflow-hidden">
-            <div 
-              className="bg-green-500 h-full rounded-full" 
-              style={{ width: `${(currentStep / 3) * 100}%` }}
-            ></div>
+            <div className="bg-green-500 h-full rounded-full w-full"></div>
           </div>
         </div>
         
-        {currentStep === 1 && (
-          <div className="max-w-2xl">
+        <div className="max-w-2xl">
             <div className="mb-6">
               <label className="block mb-2">Group Name</label>
               <input
@@ -184,101 +171,18 @@ export default function CreateGroup() {
               <Button 
                 variant="outline" 
                 onClick={() => router.back()}
+                className="mr-4"
               >
-                Previous
-              </Button>
-              <Button 
-                onClick={handleNext}
-                disabled={!groupName || !description || (useCustomDuration ? !customDuration : !duration) || !monthlyContribution || !totalMembers}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 2 && (
-          <div className="max-w-2xl">
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Invite Members (Optional)</h2>
-              <p className="text-gray-400 mb-6">
-                You can invite members now or skip this step and invite them later from the group page.
-              </p>
-              
-              <div className="bg-[#2a3a2a] rounded-lg p-6 border border-[#3a4a3a]">
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#3a4a3a] flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">Member Invitations</h3>
-                    <p className="text-gray-400 text-sm mb-4">
-                      You'll be able to invite members after creating the group.
-                    </p>
-                    <div className="bg-[#1c2c1c] rounded-lg p-4 border border-[#3a4a3a]">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center mt-0.5">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-white mb-1">How member invitations work</h4>
-                          <ul className="text-xs text-gray-400 space-y-1">
-                            <li>• Members must have existing accounts to receive invitations</li>
-                            <li>• You can invite up to {totalMembers} members total</li>
-                            <li>• Invited members will be added immediately to your group</li>
-                            <li>• You can manage member roles and permissions later</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={handlePrevious}
-              >
-                Previous
-              </Button>
-              <Button onClick={handleNext}>
-                Skip & Continue
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 3 && (
-          <div className="max-w-2xl">
-            {/* Step 3 content would go here - Payment settings */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Payment Settings</h2>
-              {/* Payment settings UI would go here */}
-              <p className="text-gray-400">This is step 3 of the group creation process.</p>
-            </div>
-            
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={handlePrevious}
-              >
-                Previous
+                Cancel
               </Button>
               <Button 
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !groupName || !description || (useCustomDuration ? !customDuration : !duration) || !monthlyContribution || !totalMembers}
               >
                 {isSubmitting ? 'Creating...' : 'Create Group'}
               </Button>
             </div>
           </div>
-        )}
       </div>
     </div>
   );
