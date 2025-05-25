@@ -91,21 +91,21 @@ export default function PaymentsPage() {
           {[
             {
               title: 'Total Paid', 
-              value: `$${totalPaid}`,
+              value: `₹${totalPaid}`,
               change: `${payments.length > 0 ? ((totalPaid / payments.reduce((sum, p) => sum + Number(p.amount), 0)) * 100).toFixed(1) : '0'}%`,
               isPositive: true,
               icon: '💸'
             },
             { 
               title: 'Pending Payments', 
-              value: `$${pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
+              value: `₹${pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
               change: `${pendingPayments.length} pending`,
               isPositive: false,
               icon: '⏳'
             },
             { 
               title: 'Failed Payments', 
-              value: `$${failedPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
+              value: `₹${failedPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
               change: `${failedPayments.length} failed`,
               isPositive: false,
               icon: '❌'
@@ -193,7 +193,7 @@ export default function PaymentsPage() {
                       </td>
                       <td className="p-4 text-sm">{payment.group_name || '-'}</td>
                       <td className="p-4 text-sm">{payment.user_name || payment.user_email || '-'}</td>
-                      <td className="p-4 text-sm text-right">${payment.amount}</td>
+                      <td className="p-4 text-sm text-right">₹{payment.amount}</td>
                       <td className="p-4 text-sm">
                         {payment.type === 'received' ? (
                           <span className="text-green-400 font-semibold">Profit</span>

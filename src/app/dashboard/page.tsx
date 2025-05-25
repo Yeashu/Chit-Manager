@@ -14,7 +14,7 @@ export default function Home() {
     totalGroups: 6,
     activeGroups: 5,
     upcomingAuctions: 2,
-    totalContributions: '$12,450',
+    totalContributions: '₹12,450',
     recentActivity: [
       {
         type: 'member',
@@ -28,7 +28,7 @@ export default function Home() {
       },
       {
         type: 'payment',
-        content: 'Your payment of $200 to Shared Prosperity Group was received',
+        content: 'Your payment of ₹200 to Shared Prosperity Group was received',
         timeAgo: '3 days ago',
       },
     ],
