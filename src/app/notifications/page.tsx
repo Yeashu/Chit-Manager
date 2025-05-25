@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import { getUserNotifications, updateNotificationStatus, deleteNotification } from '@/lib/actions/notificationActions';
-import { inviteMemberToGroup } from '@/lib/actions/memberActions';
+import { acceptGroupInvitation } from '@/lib/actions/memberActions';
 import type { NotificationWithContext } from '@/types';
 
 export default function NotificationsPage() {
@@ -38,7 +38,11 @@ export default function NotificationsPage() {
       const response = await updateNotificationStatus(notificationId, 'accepted');
       
       if (response.success) {
-        // Update local state
+        // Add user as member
+        const joinRes = await acceptGroupInvitation(groupId);
+        if (!joinRes.success) {
+          alert(joinRes.error || 'Failed to join group');
+        }
         setNotifications(prev => 
           prev.map(notif => 
             notif.id === notificationId 
@@ -179,15 +183,12 @@ export default function NotificationsPage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                className="p-8 text-center text-[#cbd5c0]"
               >
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#2a3a2a] flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5V7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-medium mb-2">No notifications</h3>
-                <p className="text-gray-400">You're all caught up! New notifications will appear here.</p>
+                {/* Fix JSX warning: use &apos; for apostrophe */}
+                <p className="text-center text-gray-400 mt-12">
+                  You&apos;re all caught up!
+                </p>
               </motion.div>
             ) : (
               notifications.map((notification, index) => (
@@ -219,8 +220,8 @@ export default function NotificationsPage() {
                           {notification.type === 'group_invite' ? (
                             <>
                               <span className="font-medium">{notification.inviter_name || notification.inviter_email}</span>
-                              {' '}invited you to join the group{' '}
-                              <span className="font-medium">"{notification.group_name}"</span>
+                              {' invited you to join the group '}
+                              <span className="font-medium">{notification.group_name}</span>
                             </>
                           ) : (
                             notification.message || 'System notification'
@@ -230,39 +231,38 @@ export default function NotificationsPage() {
                           {new Date(notification.created_at).toLocaleDateString()} at{' '}
                           {new Date(notification.created_at).toLocaleTimeString()}
                         </p>
+                        {/* Accept/Decline buttons for group_invite or any notification with group_id */}
+                        {(notification.status === 'pending' && (notification.type === 'group_invite' || notification.group_id)) && (
+                          <div className="flex items-center space-x-2 mt-3">
+                            <Button
+                              size="sm"
+                              onClick={() => handleAcceptInvitation(notification.id, notification.group_id)}
+                              disabled={actionLoading === notification.id}
+                            >
+                              {actionLoading === notification.id ? 'Processing...' : 'Accept'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeclineInvitation(notification.id)}
+                              disabled={actionLoading === notification.id}
+                            >
+                              Decline
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      {notification.status === 'pending' && notification.type === 'group_invite' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAcceptInvitation(notification.id, notification.group_id)}
-                            disabled={actionLoading === notification.id}
-                          >
-                            {actionLoading === notification.id ? 'Processing...' : 'Accept'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeclineInvitation(notification.id)}
-                            disabled={actionLoading === notification.id}
-                          >
-                            Decline
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteNotification(notification.id)}
-                        disabled={actionLoading === notification.id}
-                        className="text-red-400 border-red-400 hover:bg-red-400/10"
-                      >
-                        Delete
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                      disabled={actionLoading === notification.id}
+                      className="text-red-400 border-red-400 hover:bg-red-400/10"
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </motion.div>
               ))

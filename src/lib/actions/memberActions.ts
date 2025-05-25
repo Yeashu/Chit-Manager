@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { Member, MemberWithUser, ActionResponse } from '@/types';
+import { createInvitation } from '@/lib/actions/notificationActions';
 
 /**
  * Invite a member to join a group
@@ -59,25 +60,16 @@ export async function inviteMemberToGroup(
       return { success: false, error: 'User is already a member of this group' };
     }
 
-    // Create invitation (add as member)
-    const { data: invitation, error: inviteError } = await supabase
-      .from('group_members')
-      .insert({
-        group_id: groupId,
-        user_id: targetUser.user_id,
-        role: 'member'
-      })
-      .select('id')
-      .single();
-
-    if (inviteError || !invitation) {
-      return { success: false, error: 'Failed to send invitation' };
+    // Create invitation notification (do not add as member yet)
+    const notificationRes = await createInvitation(groupId, targetUser.user_id);
+    if (!notificationRes.success) {
+      return { success: false, error: notificationRes.error || 'Failed to send invitation notification' };
     }
 
     revalidatePath(`/GroupDetail/${groupId}`);
     return { 
       success: true, 
-      data: { invitationId: invitation.id },
+      data: { invitationId: notificationRes.data?.id },
       message: 'Invitation sent successfully'
     };
   } catch (error) {
@@ -504,6 +496,42 @@ export async function getMemberPaymentStatus(
     };
   } catch (error) {
     console.error('Error getting member payment status:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Accept invitation: add user as member if not already
+ */
+export async function acceptGroupInvitation(groupId: string): Promise<ActionResponse<{ joined: boolean }>> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return { success: false, error: 'Authentication required' };
+    }
+    // Check if already a member
+    const { data: existingMember } = await supabase
+      .from('group_members')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', user.id)
+      .single();
+    if (existingMember) {
+      return { success: true, data: { joined: false }, message: 'Already a member' };
+    }
+    // Add as member
+    const { error: addError } = await supabase
+      .from('group_members')
+      .insert({ group_id: groupId, user_id: user.id, role: 'member' });
+    if (addError) {
+      return { success: false, error: 'Failed to join group' };
+    }
+    revalidatePath(`/GroupDetail/${groupId}`);
+    revalidatePath('/MyGroups');
+    return { success: true, data: { joined: true }, message: 'Joined group successfully' };
+  } catch (error) {
+    console.error('Error accepting invitation:', error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

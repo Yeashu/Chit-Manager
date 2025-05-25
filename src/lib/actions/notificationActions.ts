@@ -31,8 +31,8 @@ export async function createInvitation(
         group_id: groupId,
         invited_by_id: user.id,
         invited_user_id: invitedUserId,
-        status: 'pending',
-        type: 'group_invite'
+        status: 'pending'
+        // type: 'group_invite' // <-- Remove this line if the 'type' column does not exist
       })
       .select()
       .single()
