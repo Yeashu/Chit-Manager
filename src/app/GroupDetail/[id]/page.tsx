@@ -509,12 +509,12 @@ export default function GroupDetail({ params }: GroupDetailProps) {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Payments ({payments.length})</h2>
-                <Button onClick={() => setShowPaymentModal(true)}>Make Payment</Button>
+                <Button href="/payments/new">Make New Payment</Button>
               </div>
               
               <div className="bg-[#2a3a2a] rounded-lg p-4">
                 {payments.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">No payments recorded yet</p>
+                  <p className="text-gray-400 text-center py-8">No payments recorded yet. <a href="/payments/new" className="text-green-500 hover:underline">Make a new payment</a>.</p>
                 ) : (
                   <div className="space-y-4">
                     {payments.map((payment) => (
