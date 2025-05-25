@@ -99,6 +99,7 @@ export interface Payment {
 }
 
 export interface PaymentWithDetails extends Payment {
+  type: 'contribution' | 'payout' | 'received'; // Added 'received'
   group_name: string;
   auction_round?: number;
   user_email?: string;

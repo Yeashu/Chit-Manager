@@ -55,7 +55,7 @@ export interface Payment {
   group_id: string;
   auction_id: string | null;
   amount: number;
-  type: 'contribution' | 'bid' | 'refund';
+  type: 'contribution' | 'payout' | 'refund' | 'received'; // Added 'received'
   status: 'pending' | 'completed' | 'failed';
 }
 
@@ -65,4 +65,4 @@ export interface CreateGroupFormData {
   monthly_contribution: number;
   total_members: number;
   duration_months: number;
-} 
+}

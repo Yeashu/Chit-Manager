@@ -102,13 +102,10 @@ export async function getAuctionDetails(
     }
 
     // Transform data to match AuctionWithBids interface
-    const transformedBids = (auction.bids || []).map((bid: any) => ({
+    const transformedBids = (auction.bids || []).map((bid: Bid) => ({
       id: bid.id,
-      auction_id: auctionId,
-      bid_amount: bid.bid_amount,
-      placed_at: bid.created_at,
-      bidder_name: bid.bidder?.name,
-      bidder_email: bid.bidder?.email
+      amount: bid.bid_amount,
+      userId: bid.user_id,
     }))
 
     const auctionWithBids: AuctionWithBids = {
@@ -257,9 +254,56 @@ export async function closeAuction(
     }
 
     // Find winning bid (lowest amount)
-    const winningBid = auction.bids.reduce((lowest: any, current: any) => 
-      !lowest || parseInt(current.bid_amount) < parseInt(lowest.bid_amount) ? current : lowest
+    const winningBid = auction.bids.reduce((lowest: Bid | null, current: Bid) =>
+      !lowest || current.bid_amount < lowest.bid_amount ? current : lowest
     , null)
+
+    // Calculate total pool (sum of all contributions for this auction)
+    const { data: group } = await supabase
+      .from('chit_groups')
+      .select('monthly_contribution, total_members')
+      .eq('id', auction.group_id)
+      .single()
+
+    if (!group) {
+      return { success: false, error: 'Group not found' }
+    }
+
+    const totalPool = group.monthly_contribution * group.total_members
+    const winnerId = winningBid?.user_id
+    const winnerBid = winningBid?.bid_amount || 0
+    const profitPool = totalPool - winnerBid
+
+    // Get all group members except the winner
+    const { data: members } = await supabase
+      .from('group_members')
+      .select('user_id')
+
+    if (!members) {
+      return { success: false, error: 'No members found in the group' }
+    }
+
+    // Adjust type to match fetched data
+    const eligibleMembers = members.filter((m: { user_id: string }) => m.user_id !== winnerId)
+    const profitPerMember = eligibleMembers.length > 0 ? profitPool / eligibleMembers.length : 0
+
+    // Insert profit payments for each eligible member
+    const profitInserts = eligibleMembers.map((member: { user_id: string }) => ({
+      user_id: member.user_id,
+      group_id: auction.group_id,
+      auction_id: auctionId,
+      amount: profitPerMember,
+      type: 'received', // Mark as profit
+      status: 'completed',
+      paid_at: new Date().toISOString()
+    }))
+
+    if (profitInserts.length > 0) {
+      const { error: insertError } = await supabase.from('payments').insert(profitInserts)
+      if (insertError) {
+        throw insertError
+      }
+    }
 
     // Update auction status and winner
     const { data: updatedAuction, error } = await supabase
@@ -362,12 +406,12 @@ export async function fetchGroupAuctions(
 
     if (error) {
       console.error('Error fetching auctions:', error);
-      return { data: null, error: 'Failed to fetch auctions' };
+      return { success: false, data: [], error: 'Failed to fetch auctions' }; // Added `success` property
     }
 
-    return { data, error: null };
+    return { success: true, data, error: undefined };
   } catch (error) {
     console.error('Error fetching auctions:', error);
-    return { data: null, error: 'Failed to fetch auctions' };
+    return { success: false, data: [], error: 'Failed to fetch auctions' }; // Added `success` property
   }
 }

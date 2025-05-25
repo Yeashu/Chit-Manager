@@ -5,12 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Link from 'next/link';
-import { pageAnimations, hoverAnimations } from '@/utils/animations';
+import { pageAnimations } from '@/utils/animations';
 import { getUserPayments } from '@/lib/actions/paymentActions';
 import { useUser } from '@/hooks/useUser';
 import type { PaymentWithDetails } from '@/types';
 
-type PaymentStatus = 'all' | 'completed' | 'pending' | 'failed';
+type PaymentStatus = 'all' | 'completed' | 'pending' | 'failed' | 'profits';
 
 export default function PaymentsPage() {
   const { user } = useUser();
@@ -29,16 +29,21 @@ export default function PaymentsPage() {
     }
   }, [user]);
 
-  const filteredPayments = activeFilter === 'all' 
-    ? payments 
-    : payments.filter(payment => payment.status === activeFilter);
+  const filteredPayments = activeFilter === 'all'
+    ? payments
+    : activeFilter === 'profits'
+      ? payments.filter(payment => payment.type === 'received')
+      : payments.filter(payment => payment.status === activeFilter);
 
   // Calculate stats from real data
   const totalPaid = payments.filter(p => p.status === 'completed').reduce((sum, p) => sum + Number(p.amount), 0);
   const pendingPayments = payments.filter(p => p.status === 'pending');
-  const failedPayments = payments.filter(p => p.status === 'failed');
+  const totalProfits = payments.filter(p => p.type === 'received').reduce((sum, p) => sum + Number(p.amount), 0);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, type: string) => {
+    if (type === 'received') {
+      return 'bg-[#34d399]/10 text-[#34d399]'; // Green for profits
+    }
     switch (status) {
       case 'completed':
         return 'bg-[#a3e635]/10 text-[#a3e635]';
@@ -104,11 +109,11 @@ export default function PaymentsPage() {
               icon: '⏳'
             },
             { 
-              title: 'Failed Payments', 
-              value: `$${failedPayments.reduce((sum, p) => sum + Number(p.amount), 0)}`,
-              change: `${failedPayments.length} failed`,
-              isPositive: false,
-              icon: '❌'
+              title: 'Profits', 
+              value: `$${totalProfits}`,
+              change: `${payments.filter(p => p.type === 'received').length} received`,
+              isPositive: true,
+              icon: '📈'
             }
           ].map((stat, index) => (
             <motion.div 
@@ -137,7 +142,7 @@ export default function PaymentsPage() {
         >
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-[#cbd5c0] text-sm">Filter by status:</span>
-            {['all', 'completed', 'pending', 'failed'].map((filter) => (
+            {['all', 'completed', 'pending', 'profits'].map((filter) => (
               <motion.button
                 key={filter}
                 onClick={() => setActiveFilter(filter as PaymentStatus)}
@@ -201,8 +206,8 @@ export default function PaymentsPage() {
                         }) : '-'}
                       </td>
                       <td className="p-4 text-right">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status, payment.type)}`}>
+                          {payment.type === 'received' ? 'Profit' : payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                         </span>
                       </td>
                     </motion.tr>
