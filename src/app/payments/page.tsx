@@ -75,7 +75,7 @@ export default function PaymentsPage() {
             <p className="text-[#cbd5c0]">View and manage all your payment transactions</p>
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-            <Button href="/make-payment">
+            <Button href="/payments/new">
               Make New Payment
             </Button>
           </motion.div>

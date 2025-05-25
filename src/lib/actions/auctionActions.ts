@@ -344,3 +344,30 @@ export async function getUserAuctions(): Promise<ActionResponse<Auction[]>> {
     return { success: false, error: 'Failed to get user auctions' }
   }
 }
+
+/**
+ * Get all auctions for a specific group
+ */
+export async function fetchGroupAuctions(
+  groupId: string
+): Promise<ActionResponse<Auction[]>> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('auctions')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('round_number', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching auctions:', error);
+      return { data: null, error: 'Failed to fetch auctions' };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching auctions:', error);
+    return { data: null, error: 'Failed to fetch auctions' };
+  }
+}
