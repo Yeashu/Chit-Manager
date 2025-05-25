@@ -170,6 +170,7 @@ export default function PaymentsPage() {
                   <th className="p-4 font-medium">Group</th>
                   <th className="p-4 font-medium">Recipient</th>
                   <th className="p-4 font-medium text-right">Amount</th>
+                  <th className="p-4 font-medium">Type</th>
                   <th className="p-4 font-medium">Date</th>
                   <th className="p-4 font-medium text-right">Status</th>
                 </tr>
@@ -193,6 +194,13 @@ export default function PaymentsPage() {
                       <td className="p-4 text-sm">{payment.group_name || '-'}</td>
                       <td className="p-4 text-sm">{payment.user_name || payment.user_email || '-'}</td>
                       <td className="p-4 text-sm text-right">${payment.amount}</td>
+                      <td className="p-4 text-sm">
+                        {payment.type === 'received' ? (
+                          <span className="text-green-400 font-semibold">Profit</span>
+                        ) : (
+                          payment.type.charAt(0).toUpperCase() + payment.type.slice(1)
+                        )}
+                      </td>
                       <td className="p-4 text-sm text-[#cbd5c0]">
                         {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString('en-US', {
                           year: 'numeric',
